@@ -95,7 +95,7 @@ public class Render extends JPanel {
 
     public static void addML(MouseListener mouseListener) {
         if (render == null) {
-            addMouseListeners.add(mouseListener);
+            addMouseListeners.add(mouseListene);
         }else {
             render.addMouseListener(mouseListener);
         }
