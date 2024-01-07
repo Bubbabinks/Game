@@ -1,17 +1,21 @@
 package main;
 
 import game.Render;
+import game.world.Chunk;
+import game.world.World;
+import game.world.WorldDetails;
 
 import javax.imageio.ImageIO;
 import java.awt.*;
 import java.awt.image.BufferedImage;
-import java.io.File;
-import java.io.IOException;
-import java.util.Objects;
+import java.io.*;
+import java.util.ArrayList;
 
 public class FileManager {
 
     private final static String mainFolder = System.getProperty("user.home")+"/Desktop/Game/";
+
+    private static ArrayList<WorldDetails> worldDetails;
 
     private static Image blockSheet = loadInternalImage("block/block_sheet");
     private static Image entitySheet = loadInternalImage("entity/entity_sheet");
@@ -21,8 +25,11 @@ public class FileManager {
         if (!file.exists()) {
             file.mkdir();
         }
-        file = new File(mainFolder+"worlds");
-
+        file = new File(mainFolder+"Worlds");
+        if (!file.exists()) {
+            file.mkdir();
+        }
+        initWorldDetails();
     }
 
     private static Image loadInternalImage(String path) {
@@ -47,4 +54,111 @@ public class FileManager {
         return image.getSubimage(x*Render.bs, y*Render.bs, Render.bs, Render.bs);
     }
 
+    private static void writeObject(Object object, String path) {
+        try {
+            ObjectOutputStream objectOutput = new ObjectOutputStream(new FileOutputStream(path));
+            objectOutput.writeObject(object);
+            objectOutput.close();
+        } catch (IOException e) {
+            e.printStackTrace();
+        }
+    }
+
+    private static Object readObject(String path) {
+        try {
+            ObjectInputStream objectInput = new ObjectInputStream(new FileInputStream(path));
+            Object o = objectInput.readObject();
+            objectInput.close();
+            return o;
+        } catch (IOException | ClassNotFoundException e) {
+            e.printStackTrace();
+        }
+        return null;
+    }
+
+    private static void initWorldDetails() {
+        File file = new File(mainFolder+"World Details.worlddetails");
+        if (file.exists()) {
+            worldDetails = (ArrayList<WorldDetails>) readObject(file.getPath());
+        }else {
+            worldDetails = new ArrayList<WorldDetails>();
+        }
+    }
+
+    public static void saveWorldDetails() {
+        File file = new File(mainFolder+"World Details.worlddetails");
+        if (file.exists()) {
+            file.delete();
+        }
+        writeObject(worldDetails, file.getPath());
+    }
+
+    public static String getNextWorldFileName() {
+        File file = new File(mainFolder+"Worlds");
+        boolean successful = false;
+        int i = 0;
+        while (!successful) {
+            boolean s = false;
+            for (var f: file.listFiles()) {
+                if (f.getName().equals(i+"")) {
+                    s = true;
+                    break;
+                }
+            }
+            if (s) {
+                i++;
+            }else {
+                successful = true;
+            }
+        }
+        return i+"";
+    }
+
+    public static void saveChunk(World world, Chunk chunk) {
+        File file = new File(mainFolder+"Worlds/"+world.worldDetails.getFilename()+"/Regions/"+(chunk.x/Chunk.chunkSize)+" "+(chunk.y/Chunk.chunkSize)+".chunk");
+        if (file.exists()) {
+            file.delete();
+        }
+        writeObject(chunk, file.getPath());
+    }
+
+    public static void saveWorld(World world) {
+        File file = new File(mainFolder+"Worlds/"+world.worldDetails.getFilename());
+        if (!file.exists()) {
+            file.mkdir();
+        }
+        writeObject(world, file.getPath()+"/s.world");
+        file = new File(file.getPath()+"/Regions");
+        if (!file.exists()) {
+            file.mkdir();
+        }
+        for (var chunk: World.getChunksInMemory()) {
+            saveChunk(world, chunk);
+        }
+    }
+
+    public static void addWorldDetails(WorldDetails worldDetails) {
+        FileManager.worldDetails.add(worldDetails);
+    }
+
+    public static World findWorld(String name) {
+        for (var details: worldDetails) {
+            if (details.getName().equals(name)) {
+                World world = (World)readObject(mainFolder+"Worlds/"+details.getFilename()+"/s.world");
+                world.worldDetails = details;
+                return world;
+            }
+        }
+        return null;
+    }
+
+    public static Chunk loadChunk(int x, int y, World world) {
+        x = x/Chunk.chunkSize;
+        y = y/Chunk.chunkSize;
+        File file = new File(mainFolder+"Worlds/"+world.worldDetails.getFilename()+"/Regions/"+x+" "+y+".chunk");
+        if (file.exists()) {
+            return (Chunk)readObject(file.getPath());
+        }
+        return null;
+    }
 }

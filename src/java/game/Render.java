@@ -21,15 +21,17 @@ public class Render extends JPanel {
     private static final int fps = (int)(1000d/60d);
 
     private final static ArrayList<MouseListener> addMouseListeners = new ArrayList<MouseListener>();
-    private final static ArrayList<MovementListener> movementListeners = new ArrayList<MovementListener>();
+    private final static boolean renderCondition = true;
+
+    private Thread rerenderThread;
 
     protected Render() {
         render = this;
         for (MouseListener m: addMouseListeners) {
             addMouseListener(m);
         }
-        Thread rerenderThread = new Thread(() -> {
-            while (Manager.applicationRunning) {
+        rerenderThread = new Thread(() -> {
+            while (Manager.applicationRunning && renderCondition) {
                 if (px != x || py != y) {
                     px = x;
                     py = y;
@@ -41,7 +43,7 @@ public class Render extends JPanel {
                     }
                 }
 
-                repaint();
+                Render.render.repaint();
                 try {
                     Thread.sleep(fps);
                 } catch (InterruptedException e) {
@@ -49,7 +51,11 @@ public class Render extends JPanel {
                 }
             }
         });
-        rerenderThread.start();
+
+    }
+
+    public static void startRenderThread() {
+        Render.render.rerenderThread.start();
     }
 
     public static void regatherWorld() {
@@ -58,31 +64,32 @@ public class Render extends JPanel {
 
     @Override
     protected void paintComponent(Graphics g) {
+        if (World.isWorldLoaded()) {
+            int rx = x;
+            int ry = y;
+            int rxo = xoffset;
+            int ryo = yoffset;
 
-        int rx = x;
-        int ry = y;
-        int rxo = xoffset;
-        int ryo = yoffset;
-
-        //GameObject Drawing
-        g.setColor(GameColors.SKY_COLOR);
-        g.fillRect(0,0, WindowManager.WINDOW_WIDTH, WindowManager.WINDOW_HEIGHT);
-        for (GameObject o: renderedObjects) {
-            g.drawImage(o.entityType.getImage(), ((o.x-rx)*bs+(o.xoffset-rxo))+hsw-o.halfWidth, -((o.y-ry)*bs+(o.yoffset-ryo))+hsh-o.halfHeight, o.width, o.height, null);
-        }
-
-        //World Drawing
-        for (RenderBlock renderBlock: renderedBlocks) {
-            if (renderBlock.block != null) {
-                BlockType block = renderBlock.block;
-                g.drawImage(block.getImage(), (((renderBlock.x)-rx)*bs+(-rxo))+hsw-hbs, -(((renderBlock.y)-ry)*bs+(-ryo))+hsh-hbs, bs, bs, null);
+            //GameObject Drawing
+            g.setColor(GameColors.SKY_COLOR);
+            g.fillRect(0,0, WindowManager.WINDOW_WIDTH, WindowManager.WINDOW_HEIGHT);
+            for (GameObject o: renderedObjects) {
+                g.drawImage(o.entityType.getImage(), ((o.x-rx)*bs+(o.xoffset-rxo))+hsw-o.halfWidth, -((o.y-ry)*bs+(o.yoffset-ryo))+hsh-o.halfHeight, o.width, o.height, null);
             }
-        }
 
-        //Debug
-        Player player = World.getPlayer();
-        g.setColor(Color.BLACK);
-        g.drawString(player.x+" "+player.y+" "+player.xoffset+" "+player.yoffset, 10, 10);
+            //World Drawing
+            for (RenderBlock renderBlock: renderedBlocks) {
+                if (renderBlock.block != null) {
+                    BlockType block = renderBlock.block;
+                    g.drawImage(block.getImage(), (((renderBlock.x)-rx)*bs+(-rxo))+hsw-hbs, -(((renderBlock.y)-ry)*bs+(-ryo))+hsh-hbs, bs, bs, null);
+                }
+            }
+
+            //Debug
+            Player player = World.getClient();
+            g.setColor(Color.BLACK);
+            g.drawString(player.x+" "+player.y+" "+player.xoffset+" "+player.yoffset, 10, 10);
+        }
     }
 
     public static void addRenderedObject(GameObject o) {
@@ -95,13 +102,13 @@ public class Render extends JPanel {
 
     public static void addML(MouseListener mouseListener) {
         if (render == null) {
-            addMouseListeners.add(mouseListene);
+            addMouseListeners.add(mouseListener);
         }else {
             render.addMouseListener(mouseListener);
         }
     }
 
-    private class RenderBlock {
+    private static class RenderBlock {
 
         public int x, y;
         public BlockType block;
@@ -112,9 +119,5 @@ public class Render extends JPanel {
             this.block = block;
         }
 
-    }
-
-    public interface MovementListener {
-        public void onPositionChange(int x, int y);
     }
 }

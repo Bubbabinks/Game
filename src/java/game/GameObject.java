@@ -1,9 +1,15 @@
 package game;
 
+import game.world.World;
+
 import java.awt.*;
 import java.io.Serializable;
 
 public abstract class GameObject implements Serializable {
+
+    public GameObject(World world) {
+        this.world = world;
+    }
 
     protected int width = 40;
     protected int height = 40;
@@ -14,5 +20,14 @@ public abstract class GameObject implements Serializable {
     protected int halfWidth = width/2;
     protected int halfHeight = height/2;
     protected EntityType entityType;
+    protected transient World world;
+
+    public void setWorld(World world) {
+        this.world = world;
+    }
+
+    public World getWorld() {
+        return world;
+    }
 
 }

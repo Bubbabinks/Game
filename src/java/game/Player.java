@@ -17,8 +17,12 @@ public class Player extends GameObject {
     public boolean isJumping = false;
     private int jumpTime = 0;
 
-    public Player() {
+    public Player(World world) {
+        super(world);
         entityType = EntityType.player;
+    }
+
+    public void init() {
         Thread playerMovement = new Thread(this::movementThread);
         playerMovement.start();
         Render.addML(new MouseAdapter() {

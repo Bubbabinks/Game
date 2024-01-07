@@ -2,84 +2,111 @@ package game.world;
 
 import game.Player;
 import game.Render;
-import game.world.worldGenerator.CheckerBoard;
-import game.world.worldGenerator.EarthLikeGenerator;
 import game.world.worldGenerator.WorldGenerator;
+import main.FileManager;
 
+import java.awt.*;
 import java.io.Serializable;
+import java.util.ArrayList;
 
 public class World implements Serializable {
 
-    private static World world;
-    private static Chunk[] loadedChunks = new Chunk[9];
+    private static final int maxChunksInMemory = 100;
 
-    private Player player;
+    private static World world;
+    private static ArrayList<Chunk> chunksInMemory = new ArrayList<Chunk>();
+
+    private Player client;
     private WorldGenerator worldGenerator;
     private String name;
+    private int renderX = 0, renderY = 0, renderOffsetX = 0, renderOffsetY = 0;
+
+    public transient WorldDetails worldDetails;
 
     public static void init() {
-        world = new World(new EarthLikeGenerator(), "Test");
 
-        Render.addRenderedObject(world.player);
+    }
+
+    public static void createWorld(String name, WorldGenerator worldGenerator) {
+        World world = new World(worldGenerator, name);
+        world.worldDetails.setFilename(FileManager.getNextWorldFileName());
+        FileManager.addWorldDetails(world.worldDetails);
+        loadWorld(world);
+        save();
+    }
+
+    public static boolean loadWorld(String name) {
+        World world = FileManager.findWorld(name);
+        if (world == null) {
+            return false;
+        }else {
+            loadWorld(world);
+            return true;
+        }
+    }
+
+    private static void loadWorld(World world) {
+        Render.x = world.renderX;
+        Render.y = world.renderY;
+        Render.xoffset = world.renderOffsetX;
+        Render.yoffset = world.renderOffsetY;
+        Render.addRenderedObject(world.client);
+        World.world = world;
+        Render.startRenderThread();
+        world.client.setWorld(world);
+        world.client.init();
     }
 
     private World(WorldGenerator worldGenerator, String name) {
         this.worldGenerator = worldGenerator;
-
-        for (int i = 0; i < loadedChunks.length; i++) {
-            loadedChunks[i] = new Chunk(((i%3)-1)*Chunk.chunkSize, ((i/3)-1)*Chunk.chunkSize);
-            worldGenerator.generateChunk(loadedChunks[i]);
-        }
-        player = new Player();
+        worldDetails = new WorldDetails(name, null);
+        client = new Player(world);
 
         this.name = name;
     }
 
-    public static Player getPlayer() {
-        return world.player;
+    public static void save() {
+        FileManager.saveWorldDetails();
+        if (world != null) {
+            world.renderX = Render.x;
+            world.renderY = Render.y;
+            world.renderOffsetX = Render.xoffset;
+            world.renderOffsetY = Render.yoffset;
+            FileManager.saveWorld(world);
+        }
+    }
+
+    public static Player getClient() {
+        return world.client;
     }
 
     public static BlockType getBlock(int x, int y) {
-        int cx = Math.floorDiv(x, Chunk.chunkSize)*Chunk.chunkSize;
-        int cy = Math.floorDiv(y, Chunk.chunkSize)*Chunk.chunkSize;
+        Point point = getStartLocation(x, y);
+        int cx = point.x;
+        int cy = point.y;
 
-        Chunk lc = null;
-        for (int i = 0; i < loadedChunks.length; i++) {
-            if (loadedChunks[i].x == cx && loadedChunks[i].y == cy) {
-                lc = loadedChunks[i];
-                break;
-            }
-        }
-        if (lc != null) {
-            return lc.getBlock(x-cx, y-cy);
-        }
-        return null;
+        Chunk lc = loadChunk(x, y);
+        return lc.getBlock(x-cx, y-cy);
     }
 
     public static void setBlock(int x, int y, BlockType block) {
-        int cx = Math.floorDiv(x, Chunk.chunkSize)*Chunk.chunkSize;
-        int cy = Math.floorDiv(y, Chunk.chunkSize)*Chunk.chunkSize;
+        Point point = getStartLocation(x, y);
+        int cx = point.x;
+        int cy = point.y;
 
-        Chunk lc = null;
-        for (int i = 0; i < loadedChunks.length; i++) {
-            if (loadedChunks[i].x == cx && loadedChunks[i].y == cy) {
-                lc = loadedChunks[i];
-                break;
-            }
-        }
-        if (lc != null) {
-            lc.setBlock(x-cx, y-cy, block);
-        }
+        Chunk lc = loadChunk(x, y);
+        lc.setBlock(x-cx, y-cy, block);
     }
 
     public static Chunk loadChunk(int x, int y) {
-        x = Math.floorDiv(x, Chunk.chunkSize)*Chunk.chunkSize;
-        y = Math.floorDiv(y, Chunk.chunkSize)*Chunk.chunkSize;
+        Point point = getStartLocation(x, y);
+        x = point.x;
+        y = point.y;
 
         Chunk lc = null;
-        for (int i = 0; i < loadedChunks.length; i++) {
-            if (loadedChunks[i].x == x && loadedChunks[i].y == y) {
-                lc = loadedChunks[i];
+        for (var chunk: chunksInMemory) {
+            if (chunk.x == x && chunk.y == y) {
+                lc = chunk;
                 break;
             }
         }
@@ -87,12 +114,36 @@ public class World implements Serializable {
             return lc;
         }
 
+        Chunk chunk = FileManager.loadChunk(x, y, world);
+        if (chunk != null) {
+            if (chunksInMemory.size() >= maxChunksInMemory) {
+                FileManager.saveChunk(world, chunksInMemory.remove(chunksInMemory.size()-1));
+            }
+            chunksInMemory.add(0, chunk);
+            return chunk;
+        }
 
-
-        Chunk chunk = new Chunk(x, y);
+        chunk = new Chunk(x, y);
         world.worldGenerator.generateChunk(chunk);
-
+        if (chunksInMemory.size() >= maxChunksInMemory) {
+            FileManager.saveChunk(world, chunksInMemory.remove(chunksInMemory.size()-1));
+        }
+        chunksInMemory.add(0, chunk);
         return chunk;
+    }
+
+    public static Point getStartLocation(int x, int y) {
+        x = Math.floorDiv(x, Chunk.chunkSize)*Chunk.chunkSize;
+        y = Math.floorDiv(y, Chunk.chunkSize)*Chunk.chunkSize;
+        return new Point(x, y);
+    }
+
+    public static boolean isWorldLoaded() {
+        return world != null;
+    }
+
+    public static ArrayList<Chunk> getChunksInMemory() {
+        return chunksInMemory;
     }
 
 }

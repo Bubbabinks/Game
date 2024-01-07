@@ -2,6 +2,7 @@ package main;
 
 import com.sun.tools.javac.Main;
 import game.GameManager;
+import game.world.World;
 import ui.MainPanel;
 import ui.WindowManager;
 
@@ -17,6 +18,7 @@ public class Manager {
 
     public static void closeApplication() {
         applicationRunning = false;
+        World.save();
     }
 
 }
