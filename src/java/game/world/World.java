@@ -46,13 +46,13 @@ public class World implements Serializable {
     }
 
     private static void loadWorld(World world) {
+        Render.clearRenderedObject();
         Render.x = world.renderX;
         Render.y = world.renderY;
         Render.xoffset = world.renderOffsetX;
         Render.yoffset = world.renderOffsetY;
         Render.addRenderedObject(world.client);
         World.world = world;
-        Render.startRenderThread();
         world.client.setWorld(world);
         world.client.init();
     }

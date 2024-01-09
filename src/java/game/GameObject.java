@@ -30,4 +30,6 @@ public abstract class GameObject implements Serializable {
         return world;
     }
 
+    public void kill() {}
+
 }

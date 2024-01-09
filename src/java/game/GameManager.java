@@ -23,6 +23,7 @@ public class GameManager {
     }
 
     public static void setPanelToRender() {
+        Render.startRenderThread();
         MainPanel.setPanel(Render.getPanel());
         WindowManager.requestFocus();
     }

@@ -104,6 +104,9 @@ public class FileManager {
             file.delete();
         }
         writeObject(worldDetails, file.getPath());
+        if (!FileManager.worldDetails.contains(worldDetails)) {
+            FileManager.worldDetails.add(worldDetails);
+        }
     }
 
     public static String getNextWorldFileName() {

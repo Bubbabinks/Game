@@ -15,8 +15,10 @@ public class Manager {
         FileManager.init();
         WindowManager.init();
 
-        MainMenuManager.init();
         GameManager.init();
+        //remove next line later!
+        GameManager.loadWorld("Testing!");
+        MainMenuManager.init();
 
         MainMenuManager.setPanelToMainMenu();
     }

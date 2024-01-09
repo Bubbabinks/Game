@@ -64,6 +64,13 @@ public class Render extends JPanel {
         px+= 40;
     }
 
+    public static void clearRenderedObject() {
+        for (var ro: renderedObjects) {
+            ro.kill();
+        }
+        renderedObjects.clear();
+    }
+
     @Override
     protected void paintComponent(Graphics g) {
         if (World.isWorldLoaded()) {

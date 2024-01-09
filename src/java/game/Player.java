@@ -4,6 +4,7 @@ import game.world.BlockType;
 import game.world.World;
 import main.Manager;
 
+import java.awt.event.KeyAdapter;
 import java.awt.event.KeyEvent;
 import java.awt.event.MouseAdapter;
 import java.awt.event.MouseEvent;
@@ -16,15 +17,30 @@ public class Player extends GameObject {
     public boolean isGrounded = false;
     public boolean isJumping = false;
     private int jumpTime = 0;
+    private boolean flight = false;
+    private boolean run = true;
 
     public Player(World world) {
         super(world);
         entityType = EntityType.player;
     }
 
+    @Override
+    public void kill() {
+        run = false;
+    }
+
     public void init() {
         Thread playerMovement = new Thread(this::movementThread);
         playerMovement.start();
+        KeyManager.addKeyListener(new KeyAdapter() {
+            @Override
+            public void keyPressed(KeyEvent e) {
+                if (e.getKeyCode() == KeyEvent.VK_X) {
+                    flight = !flight;
+                }
+            }
+        });
         Render.addML(new MouseAdapter() {
             @Override
             public void mousePressed(MouseEvent e) {
@@ -48,7 +64,7 @@ public class Player extends GameObject {
     }
 
     private void movementThread() {
-        while (Manager.applicationRunning) {
+        while (Manager.applicationRunning && run) {
             if (KeyManager.input(KeyEvent.VK_W)) {
                 if (!isJumping && isGrounded) {
                     isJumping = true;
@@ -85,30 +101,10 @@ public class Player extends GameObject {
                 }
             }
 
-            //Gravity
-            int s = Collision.checkCollisionDown(this, speed);
-            yoffset -= s;
-            if (s == 0) {
-                isGrounded = true;
-            }else {
-                isGrounded = false;
-            }
-            while (yoffset < 0) {
-                y--;
-                yoffset += Render.bs;
-            }
-            while (((y-Render.y)*Render.bs+(yoffset-Render.yoffset)) <= -maxDistanceFromCenter) {
-                Render.yoffset--;
-            }
-            while (Render.yoffset < 0) {
-                Render.y--;
-                Render.yoffset += Render.bs;
-            }
 
-            //jump
-            if (isJumping) {
-                if (jumpTime < 100) {
-                    yoffset += Collision.checkCollisionUp(this, speed+1);
+            if (flight) {
+                if (KeyManager.input(KeyEvent.VK_W)) {
+                    yoffset += Collision.checkCollisionUp(this, speed);
                     while (yoffset >= Render.bs) {
                         y++;
                         yoffset -= Render.bs;
@@ -120,17 +116,70 @@ public class Player extends GameObject {
                         Render.y++;
                         Render.yoffset -= Render.bs;
                     }
-                    jumpTime++;
+
+                }
+                if (KeyManager.input(KeyEvent.VK_S)) {
+                    yoffset -= Collision.checkCollisionDown(this, speed);
+                    while (yoffset < 0) {
+                        y--;
+                        yoffset += Render.bs;
+                    }
+                    while (((y-Render.y)*Render.bs+(yoffset-Render.yoffset)) <= -maxDistanceFromCenter) {
+                        Render.yoffset--;
+                    }
+                    while (Render.yoffset < 0) {
+                        Render.y--;
+                        Render.yoffset += Render.bs;
+                    }
+                }
+            }else {
+                //Gravity
+                int s = Collision.checkCollisionDown(this, speed);
+                yoffset -= s;
+                if (s == 0) {
+                    isGrounded = true;
                 }else {
-                    isJumping = false;
+                    isGrounded = false;
+                }
+                while (yoffset < 0) {
+                    y--;
+                    yoffset += Render.bs;
+                }
+                while (((y-Render.y)*Render.bs+(yoffset-Render.yoffset)) <= -maxDistanceFromCenter) {
+                    Render.yoffset--;
+                }
+                while (Render.yoffset < 0) {
+                    Render.y--;
+                    Render.yoffset += Render.bs;
+                }
+
+                //jump
+                if (isJumping) {
+                    if (jumpTime < 100) {
+                        yoffset += Collision.checkCollisionUp(this, speed+1);
+                        while (yoffset >= Render.bs) {
+                            y++;
+                            yoffset -= Render.bs;
+                        }
+                        while (((y-Render.y)*Render.bs+(yoffset-Render.yoffset)) >= maxDistanceFromCenter) {
+                            Render.yoffset++;
+                        }
+                        while (Render.yoffset >= Render.bs) {
+                            Render.y++;
+                            Render.yoffset -= Render.bs;
+                        }
+                        jumpTime++;
+                    }else {
+                        isJumping = false;
+                    }
                 }
             }
-
             try {
                 Thread.sleep(1);
             } catch (InterruptedException e) {
                 e.printStackTrace();
             }
+
         }
     }
 
