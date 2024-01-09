@@ -2,7 +2,9 @@ package game;
 
 import game.world.BlockType;
 import game.world.World;
+import main.FileManager;
 import main.Manager;
+import main.SkyBox;
 import ui.WindowManager;
 
 import javax.swing.*;
@@ -70,9 +72,10 @@ public class Render extends JPanel {
             int rxo = xoffset;
             int ryo = yoffset;
 
+            //SkyBox Drawing
+            g.drawImage(SkyBox.day.getImage(), 0, 0, WindowManager.WINDOW_WIDTH, WindowManager.WINDOW_HEIGHT, null);
+
             //GameObject Drawing
-            g.setColor(GameColors.SKY_COLOR);
-            g.fillRect(0,0, WindowManager.WINDOW_WIDTH, WindowManager.WINDOW_HEIGHT);
             for (GameObject o: renderedObjects) {
                 g.drawImage(o.entityType.getImage(), ((o.x-rx)*bs+(o.xoffset-rxo))+hsw-o.halfWidth, -((o.y-ry)*bs+(o.yoffset-ryo))+hsh-o.halfHeight, o.width, o.height, null);
             }
@@ -119,5 +122,9 @@ public class Render extends JPanel {
             this.block = block;
         }
 
+    }
+
+    public static Render getPanel() {
+        return render;
     }
 }

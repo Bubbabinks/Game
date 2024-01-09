@@ -9,13 +9,14 @@ import javax.imageio.ImageIO;
 import java.awt.*;
 import java.awt.image.BufferedImage;
 import java.io.*;
+import java.net.URISyntaxException;
+import java.nio.file.Files;
 import java.util.ArrayList;
 
 public class FileManager {
 
     private final static String mainFolder = System.getProperty("user.home")+"/Desktop/Game/";
-
-    private static ArrayList<WorldDetails> worldDetails;
+    private final static ArrayList<WorldDetails> worldDetails = new ArrayList<WorldDetails>();
 
     private static Image blockSheet = loadInternalImage("block/block_sheet");
     private static Image entitySheet = loadInternalImage("entity/entity_sheet");
@@ -30,15 +31,27 @@ public class FileManager {
             file.mkdir();
         }
         initWorldDetails();
+        initSkyBoxes();
     }
 
-    private static Image loadInternalImage(String path) {
+    public static Image loadInternalImage(String path) {
         try {
             return ImageIO.read(FileManager.class.getClassLoader().getResourceAsStream("textures/"+path+".png"));
         } catch (IOException e) {
             e.printStackTrace();
         }
         return null;
+    }
+
+    public static Image loadWorldImage(WorldDetails worldDetails) {
+        try {
+            return ImageIO.read(new File(mainFolder+"Worlds/"+worldDetails.getFilename()+"/icon.png"));
+        } catch (IOException e) {}
+        return null;
+    }
+
+    public static ImageUtil getImage(String path) {
+        return new ImageUtil(loadInternalImage(path));
     }
 
     public static BufferedImage getBlockTypeImage(int x, int y) {
@@ -77,16 +90,16 @@ public class FileManager {
     }
 
     private static void initWorldDetails() {
-        File file = new File(mainFolder+"World Details.worlddetails");
+        File file = new File(mainFolder+"Worlds/");
         if (file.exists()) {
-            worldDetails = (ArrayList<WorldDetails>) readObject(file.getPath());
-        }else {
-            worldDetails = new ArrayList<WorldDetails>();
+            for (var f: file.listFiles()) {
+                worldDetails.add((WorldDetails)readObject(f.getPath()+"/World Details.detail"));
+            }
         }
     }
 
-    public static void saveWorldDetails() {
-        File file = new File(mainFolder+"World Details.worlddetails");
+    public static void saveWorldDetails(WorldDetails worldDetails) {
+        File file = new File(mainFolder+"Worlds/"+worldDetails.getFilename()+"/World Details.detail");
         if (file.exists()) {
             file.delete();
         }
@@ -135,10 +148,15 @@ public class FileManager {
         for (var chunk: World.getChunksInMemory()) {
             saveChunk(world, chunk);
         }
-    }
-
-    public static void addWorldDetails(WorldDetails worldDetails) {
-        FileManager.worldDetails.add(worldDetails);
+        Image image = loadWorldImage(world.worldDetails);
+        if (image == null) {
+            try {
+                Files.copy(FileManager.class.getClassLoader().getResourceAsStream("textures/default/worldImage.png"),
+                        new File(mainFolder+"Worlds/"+world.worldDetails.getFilename()+"/icon.png").toPath());
+            } catch (IOException e) {
+                e.printStackTrace();
+            }
+        }
     }
 
     public static World findWorld(String name) {
@@ -160,5 +178,24 @@ public class FileManager {
             return (Chunk)readObject(file.getPath());
         }
         return null;
+    }
+
+    public static void initSkyBoxes() {
+        for (var sky: SkyBox.values()) {
+            sky.setImage(loadInternalImage("skybox/"+sky.name()));
+        }
+    }
+
+    public static WorldDetails findWorldDetails(String name) {
+        for (var d: worldDetails) {
+            if (name.equals(d.getName())) {
+                return d;
+            }
+        }
+        return null;
+    }
+
+    public static ArrayList<WorldDetails> getWorldDetails() {
+        return worldDetails;
     }
 }

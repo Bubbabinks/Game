@@ -11,11 +11,20 @@ public class GameManager {
         WindowManager.addKeyListener(new KeyManager());
         World.init();
 
-        MainPanel.setPanel(new Render());
-        String worldName = "Test World!";
+        new Render();
+
+    }
+
+    public static void loadWorld(String name) {
+        String worldName = name;
         if (!World.loadWorld(worldName)) {
             World.createWorld(worldName, new EarthLikeGenerator());
         }
+    }
+
+    public static void setPanelToRender() {
+        MainPanel.setPanel(Render.getPanel());
+        WindowManager.requestFocus();
     }
 
 }

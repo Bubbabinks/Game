@@ -1,0 +1,14 @@
+<component name="libraryTable">
+  <library name="Flat LAF" type="repository">
+    <properties maven-id="com.formdev:flatlaf:3.2.5" />
+    <CLASSES>
+      <root url="jar://$MAVEN_REPOSITORY$/com/formdev/flatlaf/3.2.5/flatlaf-3.2.5.jar!/" />
+    </CLASSES>
+    <JAVADOC>
+      <root url="jar://$MAVEN_REPOSITORY$/com/formdev/flatlaf/3.2.5/flatlaf-3.2.5-javadoc.jar!/" />
+    </JAVADOC>
+    <SOURCES>
+      <root url="jar://$MAVEN_REPOSITORY$/com/formdev/flatlaf/3.2.5/flatlaf-3.2.5-sources.jar!/" />
+    </SOURCES>
+  </library>
+</component>

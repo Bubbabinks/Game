@@ -1,5 +1,6 @@
 package ui;
 
+import com.formdev.flatlaf.FlatDarkLaf;
 import main.Manager;
 
 import javax.swing.*;
@@ -14,6 +15,7 @@ public class WindowManager {
     private static JFrame frame;
 
     public static void init() {
+        FlatDarkLaf.setup();
         frame = new JFrame("Game");
         frame.setResizable(false);
         frame.setContentPane(new MainPanel());
@@ -34,4 +36,13 @@ public class WindowManager {
         frame.addKeyListener(keyListener);
     }
 
+    public static void closeApplication() {
+        if (frame.isActive()) {
+            frame.dispose();
+        }
+    }
+
+    public static void requestFocus() {
+        frame.requestFocus();
+    }
 }

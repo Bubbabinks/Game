@@ -30,9 +30,9 @@ public class World implements Serializable {
     public static void createWorld(String name, WorldGenerator worldGenerator) {
         World world = new World(worldGenerator, name);
         world.worldDetails.setFilename(FileManager.getNextWorldFileName());
-        FileManager.addWorldDetails(world.worldDetails);
         loadWorld(world);
         save();
+        FileManager.saveWorldDetails(world.worldDetails);
     }
 
     public static boolean loadWorld(String name) {
@@ -66,13 +66,13 @@ public class World implements Serializable {
     }
 
     public static void save() {
-        FileManager.saveWorldDetails();
         if (world != null) {
             world.renderX = Render.x;
             world.renderY = Render.y;
             world.renderOffsetX = Render.xoffset;
             world.renderOffsetY = Render.yoffset;
             FileManager.saveWorld(world);
+            FileManager.saveWorldDetails(world.worldDetails);
         }
     }
 
