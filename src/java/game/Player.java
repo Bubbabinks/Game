@@ -22,6 +22,7 @@ public class Player extends GameObject {
 
     public Player(World world) {
         super(world);
+        y = 20;
         entityType = EntityType.player;
     }
 
