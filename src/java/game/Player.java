@@ -19,6 +19,7 @@ public class Player extends GameObject {
     private int jumpTime = 0;
     private boolean flight = false;
     private boolean run = true;
+    private boolean flightAllowed = false;
 
     public Player(World world) {
         super(world);
@@ -32,13 +33,18 @@ public class Player extends GameObject {
     }
 
     public void init() {
+        if (Manager.developmentMode) {
+            flightAllowed = true;
+        }
         Thread playerMovement = new Thread(this::movementThread);
         playerMovement.start();
         KeyManager.addKeyListener(new KeyAdapter() {
             @Override
             public void keyPressed(KeyEvent e) {
-                if (e.getKeyCode() == KeyEvent.VK_X) {
-                    flight = !flight;
+                if (flightAllowed) {
+                    if (e.getKeyCode() == KeyEvent.VK_X) {
+                        flight = !flight;
+                    }
                 }
             }
         });

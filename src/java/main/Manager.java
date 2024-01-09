@@ -10,23 +10,31 @@ import ui.WindowManager;
 public class Manager {
 
     public static boolean applicationRunning = true;
+    public static boolean developmentMode = true;
 
     public static void main(String[] args) {
         FileManager.init();
         WindowManager.init();
 
         GameManager.init();
-        //remove next line later!
-        GameManager.loadWorld("Testing!");
-        MainMenuManager.init();
+        if (!developmentMode) {
+            MainMenuManager.init();
 
-        MainMenuManager.setPanelToMainMenu();
+            MainMenuManager.setPanelToMainMenu();
+        }else {
+            GameManager.loadWorld("Testing!");
+            GameManager.setPanelToRender();
+        }
+
     }
 
     public static void closeApplication() {
         applicationRunning = false;
         World.save();
         WindowManager.closeApplication();
+        if (developmentMode) {
+            FileManager.delete(FileManager.mainFolder+"Worlds");
+        }
     }
 
 }

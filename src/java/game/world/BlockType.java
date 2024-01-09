@@ -9,7 +9,9 @@ public enum BlockType implements Serializable {
 
     stone(FileManager.getBlockTypeImage(0,0)),
     dirt(FileManager.getBlockTypeImage(0, 1)),
-    grass(FileManager.getBlockTypeImage(0, 2));
+    grass(FileManager.getBlockTypeImage(0, 2)),
+    log(FileManager.getBlockTypeImage(0, 3)),
+    leaves(FileManager.getBlockTypeImage(0, 4));
 
     private BufferedImage image;
 

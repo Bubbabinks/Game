@@ -15,7 +15,7 @@ import java.util.ArrayList;
 
 public class FileManager {
 
-    private final static String mainFolder = System.getProperty("user.home")+"/Desktop/Game/";
+    protected final static String mainFolder = System.getProperty("user.home")+"/Desktop/Game/";
     private final static ArrayList<WorldDetails> worldDetails = new ArrayList<WorldDetails>();
 
     private static Image blockSheet = loadInternalImage("block/block_sheet");
@@ -200,5 +200,17 @@ public class FileManager {
 
     public static ArrayList<WorldDetails> getWorldDetails() {
         return worldDetails;
+    }
+
+    public static void delete(String path) {
+        File file = new File(path);
+        if (file.exists()) {
+            if (file.isDirectory()) {
+                for (var f: file.listFiles()) {
+                    delete(f.getPath());
+                }
+            }
+            file.delete();
+        }
     }
 }

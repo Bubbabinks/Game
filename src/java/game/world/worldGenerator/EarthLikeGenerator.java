@@ -11,7 +11,9 @@ public class EarthLikeGenerator extends WorldGenerator {
 
     private static final float SCALE_TERRAIN = 3f;
 
-    private long seed = new Random().nextLong();
+    private Random random = new Random();
+    private long seed = random.nextLong();
+
 
 
     @Override
@@ -19,6 +21,8 @@ public class EarthLikeGenerator extends WorldGenerator {
         for (int x = 0; x < Chunk.chunkSize; x++) {
             int ax = chunk.x+x;
             float terrainOffset = OpenSimplex2S.noise2_ImproveX(seed, (double)ax/10d, 0)*SCALE_TERRAIN;
+            boolean tree = OpenSimplex2S.noise2(seed, x, 0)<-0.5f && !(OpenSimplex2S.noise2(seed, x-1, 0)<-0.5f);
+            int treeHeight = (int)(random.nextFloat()*3f+5f);
             for (int y = 0; y < Chunk.chunkSize; y++) {
                 int ay = chunk.y+y;
                 float m = (float)ay;
@@ -35,7 +39,13 @@ public class EarthLikeGenerator extends WorldGenerator {
                 }else if (ay < -1+terrainOffset) {
                     chunk.setBlock(x, y, BlockType.dirt);
                 }else if (ay < 0+terrainOffset) {
-                    chunk.setBlock(x, y, BlockType.grass);
+                    if (tree) {
+                        chunk.setBlock(x, y, BlockType.dirt);
+                    }else {
+                        chunk.setBlock(x, y, BlockType.grass);
+                    }
+                }else if (tree && ay < treeHeight+terrainOffset) {
+                    chunk.setBlock(x, y, BlockType.log);
                 }
             }
 
