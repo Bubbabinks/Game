@@ -91,7 +91,7 @@ public class TreeGeneratorApp {
             @Override
             public boolean accept(File f) {
                 String[] split = f.getName().split("\\.");
-                if (split.length > 1 && split[split.length-1].equals("json")) {
+                if ((split.length > 1 && split[split.length-1].equals("json")) || split.length == 1) {
                     return true;
                 }
                 return false;
