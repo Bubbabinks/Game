@@ -11,13 +11,13 @@ public class Collision {
         if (gameObject.yoffset == 0) {
             BlockType block3 = World.getBlock(gameObject.x, gameObject.y+1);
             BlockType block4 = World.getBlock(gameObject.x+1, gameObject.y+1);
-            if (block3 == null && (block4 == null || gameObject.xoffset == 0)) {
+            if ((block3 == null || !block3.isCollideable()) && (block4 == null || !block4.isCollideable() || gameObject.xoffset == 0)) {
                 return distance;
             }else {
                 return 0;
             }
         }else {
-            if (block == null && (block2 == null || gameObject.xoffset == 0)) {
+            if ((block == null || !block.isCollideable()) && (block2 == null || !block2.isCollideable() || gameObject.xoffset == 0)) {
                 return distance;
             }else {
                 int d = Render.bs - gameObject.yoffset;
@@ -37,13 +37,13 @@ public class Collision {
         if (gameObject.xoffset == 0) {
             BlockType block3 = World.getBlock(gameObject.x+1, gameObject.y);
             BlockType block4 = World.getBlock(gameObject.x+1, gameObject.y+1);
-            if (block3 == null && (block4 == null || gameObject.yoffset == 0)) {
+            if ((block3 == null ||!block3.isCollideable()) && (block4 == null || !block4.isCollideable() || gameObject.yoffset == 0)) {
                 return distance;
             }else {
                 return 0;
             }
         }else {
-            if (block == null && (block2 == null || gameObject.yoffset == 0)) {
+            if ((block == null || !block.isCollideable()) && (block2 == null || !block2.isCollideable() || gameObject.yoffset == 0)) {
                 return distance;
             } else {
                 int d = Render.bs - gameObject.xoffset;
@@ -59,7 +59,7 @@ public class Collision {
     public static int checkCollisionDown(GameObject gameObject, int distance) {
         BlockType block = World.getBlock(gameObject.x, gameObject.y-1);
         BlockType block2 = World.getBlock(gameObject.x+1, gameObject.y-1);
-        if (block == null && (block2 == null || gameObject.xoffset == 0)) {
+        if ((block == null || !block.isCollideable()) && (block2 == null || !block2.isCollideable() || gameObject.xoffset == 0)) {
             return distance;
         } else {
             int d = gameObject.yoffset;
@@ -75,7 +75,7 @@ public class Collision {
     public static int checkCollisionLeft(GameObject gameObject, int distance) {
         BlockType block = World.getBlock(gameObject.x-1, gameObject.y);
         BlockType block2 = World.getBlock(gameObject.x-1, gameObject.y+1);
-        if (block == null && (block2 == null || gameObject.yoffset == 0)) {
+        if ((block == null || !block.isCollideable()) && (block2 == null || !block2.isCollideable() || gameObject.yoffset == 0)) {
             return distance;
         } else {
             int d = gameObject.xoffset;

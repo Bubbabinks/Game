@@ -8,7 +8,7 @@
     </content>
     <orderEntry type="inheritedJdk" />
     <orderEntry type="sourceFolder" forTests="false" />
-    <orderEntry type="library" name="Jackson" level="project" />
     <orderEntry type="library" name="Flat LAF" level="project" />
+    <orderEntry type="library" name="Gson" level="project" />
   </component>
 </module>

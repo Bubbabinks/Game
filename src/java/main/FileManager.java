@@ -1,9 +1,12 @@
 package main;
 
+import com.google.gson.Gson;
+import com.google.gson.GsonBuilder;
 import game.Render;
 import game.world.Chunk;
 import game.world.World;
 import game.world.WorldDetails;
+import game.world.worldGenerator.tree.TreeInfo;
 
 import javax.imageio.ImageIO;
 import java.awt.*;
@@ -15,21 +18,16 @@ import java.util.ArrayList;
 
 public class FileManager {
 
-    protected final static String mainFolder = System.getProperty("user.home")+"/Desktop/Game/";
+    public final static String mainFolder = System.getProperty("user.home")+"/Desktop/Game/";
+    private final static Gson gson = new GsonBuilder().setPrettyPrinting().create();
     private final static ArrayList<WorldDetails> worldDetails = new ArrayList<WorldDetails>();
 
     private static Image blockSheet = loadInternalImage("block/block_sheet");
     private static Image entitySheet = loadInternalImage("entity/entity_sheet");
 
     public static void init() {
-        File file = new File(mainFolder);
-        if (!file.exists()) {
-            file.mkdir();
-        }
-        file = new File(mainFolder+"Worlds");
-        if (!file.exists()) {
-            file.mkdir();
-        }
+        insureFolder(mainFolder);
+        insureFolder(mainFolder+"Worlds");
         initWorldDetails();
         initSkyBoxes();
     }
@@ -139,15 +137,9 @@ public class FileManager {
     }
 
     public static void saveWorld(World world) {
-        File file = new File(mainFolder+"Worlds/"+world.worldDetails.getFilename());
-        if (!file.exists()) {
-            file.mkdir();
-        }
+        File file = insureFolder(mainFolder+"Worlds/"+world.worldDetails.getFilename());
         writeObject(world, file.getPath()+"/s.world");
-        file = new File(file.getPath()+"/Regions");
-        if (!file.exists()) {
-            file.mkdir();
-        }
+        file = insureFolder(file.getPath()+"/Regions");
         for (var chunk: World.getChunksInMemory()) {
             saveChunk(world, chunk);
         }
@@ -212,5 +204,44 @@ public class FileManager {
             }
             file.delete();
         }
+    }
+
+    public static void writeFile(String path, String info) {
+        try {
+            FileWriter writer = new FileWriter(path);
+            writer.write(info);
+            writer.close();
+        } catch (IOException e) {
+            e.printStackTrace();
+        }
+    }
+
+    public static void writeJson(String path, Object object) {
+        writeFile(path, gson.toJson(object));
+    }
+
+    public static Object readJson(String path, Class<?> c) {
+        try {
+            return gson.fromJson(new InputStreamReader(new FileInputStream(path)), c);
+        } catch (FileNotFoundException e) {
+            e.printStackTrace();
+        }
+        return null;
+    }
+
+    public static Object readInternalJson(String path, Class<?> c) {
+        return gson.fromJson(new InputStreamReader(FileManager.class.getClassLoader().getResourceAsStream("trees/"+path+".json")), c);
+    }
+
+    public static File insureFolder(String path) {
+        File file = new File(path);
+        if (!file.exists()) {
+            file.mkdirs();
+        }
+        return file;
+    }
+
+    public static TreeInfo loadInternalTree(String path) {
+        return (TreeInfo) readInternalJson(path, TreeInfo.class);
     }
 }

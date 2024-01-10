@@ -82,17 +82,17 @@ public class Render extends JPanel {
             //SkyBox Drawing
             g.drawImage(SkyBox.day.getImage(), 0, 0, WindowManager.WINDOW_WIDTH, WindowManager.WINDOW_HEIGHT, null);
 
-            //GameObject Drawing
-            for (GameObject o: renderedObjects) {
-                g.drawImage(o.entityType.getImage(), ((o.x-rx)*bs+(o.xoffset-rxo))+hsw-o.halfWidth, -((o.y-ry)*bs+(o.yoffset-ryo))+hsh-o.halfHeight, o.width, o.height, null);
-            }
-
             //World Drawing
             for (RenderBlock renderBlock: renderedBlocks) {
                 if (renderBlock.block != null) {
                     BlockType block = renderBlock.block;
                     g.drawImage(block.getImage(), (((renderBlock.x)-rx)*bs+(-rxo))+hsw-hbs, -(((renderBlock.y)-ry)*bs+(-ryo))+hsh-hbs, bs, bs, null);
                 }
+            }
+
+            //GameObject Drawing
+            for (GameObject o: renderedObjects) {
+                g.drawImage(o.entityType.getImage(), ((o.x-rx)*bs+(o.xoffset-rxo))+hsw-o.halfWidth, -((o.y-ry)*bs+(o.yoffset-ryo))+hsh-o.halfHeight, o.width, o.height, null);
             }
 
             //Debug

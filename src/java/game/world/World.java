@@ -11,7 +11,7 @@ import java.util.ArrayList;
 
 public class World implements Serializable {
 
-    private static final int maxChunksInMemory = 100;
+    private static final int maxChunksInMemory = 50;
 
     private static World world;
     private static ArrayList<Chunk> chunksInMemory = new ArrayList<Chunk>();
