@@ -1,6 +1,6 @@
 package game.world;
 
-import game.Player;
+import game.entity.Player;
 import game.Render;
 import game.world.worldGenerator.WorldGenerator;
 import main.FileManager;
@@ -11,7 +11,7 @@ import java.util.ArrayList;
 
 public class World implements Serializable {
 
-    private static final int maxChunksInMemory = 50;
+    private static final int maxChunksInMemory = 25;
 
     private static World world;
     private static ArrayList<Chunk> chunksInMemory = new ArrayList<Chunk>();
@@ -22,6 +22,8 @@ public class World implements Serializable {
     private int renderX = 0, renderY = 0, renderOffsetX = 0, renderOffsetY = 0;
 
     public transient WorldDetails worldDetails;
+
+    private static boolean isLoaded = false;
 
     public static void init() {
 
@@ -55,6 +57,7 @@ public class World implements Serializable {
         World.world = world;
         world.client.setWorld(world);
         world.client.init();
+        isLoaded = true;
     }
 
     private World(WorldGenerator worldGenerator, String name) {
@@ -98,6 +101,24 @@ public class World implements Serializable {
         lc.setBlock(x-cx, y-cy, block);
     }
 
+    public static BackgroundType getBackground(int x, int y) {
+        Point point = getStartLocation(x, y);
+        int cx = point.x;
+        int cy = point.y;
+
+        Chunk lc = loadChunk(x, y);
+        return lc.getBackground(x-cx, y-cy);
+    }
+
+    public static void setBackgroundType(int x, int y, BackgroundType background) {
+        Point point = getStartLocation(x, y);
+        int cx = point.x;
+        int cy = point.y;
+
+        Chunk lc = loadChunk(x, y);
+        lc.setBackground(x-cx, y-cy, background);
+    }
+
     public static Chunk loadChunk(int x, int y) {
         Point point = getStartLocation(x, y);
         x = point.x;
@@ -139,7 +160,7 @@ public class World implements Serializable {
     }
 
     public static boolean isWorldLoaded() {
-        return world != null;
+        return isLoaded;
     }
 
     public static ArrayList<Chunk> getChunksInMemory() {

@@ -4,7 +4,6 @@ import com.formdev.flatlaf.FlatDarkLaf;
 import game.world.BlockType;
 import main.FileManager;
 import main.ImageUtil;
-import main.SkyBox;
 
 import javax.swing.*;
 import javax.swing.filechooser.FileFilter;
@@ -124,7 +123,6 @@ public class TreeGeneratorApp {
 
     private static class MainPanel extends JPanel {
 
-        private Image background = SkyBox.day.getImage();
         private Image treeBase = FileManager.loadInternalImage("tree_generator/base");
 
         private int buttonDown = 0;
@@ -136,7 +134,6 @@ public class TreeGeneratorApp {
         @Override
         protected void paintComponent(Graphics g) {
             super.paintComponent(g);
-            g.drawImage(background, 0, 0, 1000, 1000, null);
             for (int x = 0; x < 15; x++) {
                 for (int y = 0; y < 15; y++) {
                     g.setColor(Color.BLACK);

@@ -1,5 +1,6 @@
 package game.world.worldGenerator;
 
+import game.world.BackgroundType;
 import game.world.BlockType;
 import game.world.Chunk;
 import game.world.worldGenerator.tree.TreeType;
@@ -20,7 +21,12 @@ public class EarthLikeGenerator extends WorldGenerator {
 
 
     public boolean checkForTree(int ax, float frequency) {
-        return OpenSimplex2S.noise2(seed, ax, 0)<-frequency && !(OpenSimplex2S.noise2(seed, ax-1, 0)<-frequency);
+        return OpenSimplex2S.noise2(seed+(long)seedOffsetForTree+2, ax, 0)<-frequency && !(OpenSimplex2S.noise2(seed+(long)seedOffsetForTree+2, ax-1, 0)<-frequency);
+    }
+
+    public TreeType getTreeType(int ax) {
+        TreeType[] treeTypes = TreeType.values();
+        return treeTypes[(int)(((OpenSimplex2S.noise2(seed, ax+seedOffsetForTree+5, 0)+1f)/2f)*treeTypes.length)];
     }
 
     private int treeHeight(int ax) {
@@ -39,6 +45,16 @@ public class EarthLikeGenerator extends WorldGenerator {
             float terrainOffset = terrainOffset(ax);
             for (int y = 0; y < Chunk.chunkSize; y++) {
                 int ay = chunk.y+y;
+                //Background
+                if (ay < terrainOffset-100) {
+                    chunk.setBackground(x, y, BackgroundType.deep_underground);
+                }else if (ay < terrainOffset-5) {
+                    chunk.setBackground(x, y, BackgroundType.underground);
+                }else {
+                    chunk.setBackground(x, y, BackgroundType.sky);
+                }
+
+                //Block
                 float m = (float)ay;
                 m = -m/4f;
                 m = (m - 4f);
@@ -46,7 +62,11 @@ public class EarthLikeGenerator extends WorldGenerator {
                     m = .075f;
                 }
                 float cave = OpenSimplex2S.noise2_ImproveX(seed, (double)ax/15d, (double)ay/15d)+m;
-                if (ay < -5+terrainOffset) {
+                if (ay < -100+terrainOffset) {
+                    if (cave < 0.1) {
+                        chunk.setBlock(x, y, BlockType.deep_stone);
+                    }
+                } else if (ay < -5+terrainOffset) {
                     if (cave < 0.1) {
                         chunk.setBlock(x, y, BlockType.stone);
                     }
@@ -61,7 +81,7 @@ public class EarthLikeGenerator extends WorldGenerator {
             //Tree Generation
             for (int offset = -14; offset<15; offset++) {
                 if (checkForTree(ax+offset, frequency)) {
-                    ArrayList<BlockType> v = TreeType.treeV2.getVertical(offset);
+                    ArrayList<BlockType> v = getTreeType(ax+offset).getVertical(offset);
                     if (v != null) {
                         int h = v.size();
                         int o = (int)terrainOffset(ax+offset)+h;

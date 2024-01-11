@@ -1,9 +1,7 @@
 package menu.main;
 
-import game.GameManager;
 import main.FileManager;
 import main.ImageUtil;
-import main.SkyBox;
 import ui.CustomButton;
 import ui.WindowManager;
 

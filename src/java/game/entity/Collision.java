@@ -1,5 +1,6 @@
-package game;
+package game.entity;
 
+import game.Render;
 import game.world.BlockType;
 import game.world.World;
 

@@ -1,5 +1,7 @@
 package game;
 
+import game.inventory.ItemType;
+import game.world.BlockType;
 import game.world.World;
 import game.world.worldGenerator.EarthLikeGenerator;
 import ui.MainPanel;
@@ -12,7 +14,8 @@ public class GameManager {
         World.init();
 
         new Render();
-
+        BlockType.init();
+        ItemType.init();
     }
 
     public static void loadWorld(String name) {
@@ -23,7 +26,6 @@ public class GameManager {
     }
 
     public static void setPanelToRender() {
-        Render.startRenderThread();
         MainPanel.setPanel(Render.getPanel());
         WindowManager.requestFocus();
     }

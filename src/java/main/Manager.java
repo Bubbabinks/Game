@@ -1,10 +1,9 @@
 package main;
 
-import com.sun.tools.javac.Main;
 import game.GameManager;
+import game.update.Update;
 import game.world.World;
 import menu.main.MainMenuManager;
-import ui.MainPanel;
 import ui.WindowManager;
 
 public class Manager {
@@ -13,6 +12,7 @@ public class Manager {
     public static boolean developmentMode = true;
 
     public static void main(String[] args) {
+        Update.init();
         FileManager.init();
         WindowManager.init();
 

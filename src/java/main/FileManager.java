@@ -24,12 +24,13 @@ public class FileManager {
 
     private static Image blockSheet = loadInternalImage("block/block_sheet");
     private static Image entitySheet = loadInternalImage("entity/entity_sheet");
+    private static Image backgroundSheet = loadInternalImage("background/background_sheet");
+    private static Image itemSheet = loadInternalImage("item/item_sheet");
 
     public static void init() {
         insureFolder(mainFolder);
         insureFolder(mainFolder+"Worlds");
         initWorldDetails();
-        initSkyBoxes();
     }
 
     public static Image loadInternalImage(String path) {
@@ -56,9 +57,14 @@ public class FileManager {
         return getTypeSubImage(x, y, blockSheet);
     }
 
+    public static BufferedImage getBackgroundTypeImage(int x, int y) {
+        return getTypeSubImage(x, y, backgroundSheet);
+    }
+
     public static BufferedImage getEntityTypeImage(int x, int y) {
         return getTypeSubImage(x, y, entitySheet);
     }
+    public static BufferedImage getItemTypeImage(int x, int y) {return getTypeSubImage(x, y, itemSheet);}
 
     private static BufferedImage getTypeSubImage(int x, int y, Image original) {
         BufferedImage image = (BufferedImage) original;
@@ -173,12 +179,6 @@ public class FileManager {
             return (Chunk)readObject(file.getPath());
         }
         return null;
-    }
-
-    public static void initSkyBoxes() {
-        for (var sky: SkyBox.values()) {
-            sky.setImage(loadInternalImage("skybox/"+sky.name()));
-        }
     }
 
     public static WorldDetails findWorldDetails(String name) {

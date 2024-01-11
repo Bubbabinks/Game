@@ -9,7 +9,8 @@ import java.util.ArrayList;
 public enum TreeType {
 
     treeV1("treeV1"),
-    treeV2("treeV2");
+    treeV2("treeV2"),
+    treeV3("treeV3");
 
     private TreeInfo treeInfo;
 

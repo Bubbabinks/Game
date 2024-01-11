@@ -1,8 +1,7 @@
-package game;
+package game.entity;
 
 import game.world.World;
 
-import java.awt.*;
 import java.io.Serializable;
 
 public abstract class GameObject implements Serializable {
@@ -11,15 +10,15 @@ public abstract class GameObject implements Serializable {
         this.world = world;
     }
 
-    protected int width = 40;
-    protected int height = 40;
-    protected int x = 0;
-    protected int y = 0;
-    protected int xoffset = 0;
-    protected int yoffset = 0;
-    protected int halfWidth = width/2;
-    protected int halfHeight = height/2;
-    protected EntityType entityType;
+    public int width = 40;
+    public int height = 40;
+    public int x = 0;
+    public int y = 0;
+    public int xoffset = 0;
+    public int yoffset = 0;
+    public int halfWidth = width/2;
+    public int halfHeight = height/2;
+    public EntityType entityType;
     protected transient World world;
 
     public void setWorld(World world) {
