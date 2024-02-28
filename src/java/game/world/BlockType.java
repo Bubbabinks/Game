@@ -13,7 +13,8 @@ public enum BlockType implements Serializable {
     grass(FileManager.getBlockTypeImage(0, 2), true),
     log(FileManager.getBlockTypeImage(0, 3), false),
     leaves(FileManager.getBlockTypeImage(0, 4), false),
-    deep_stone(FileManager.getBlockTypeImage(0, 5), true);
+    deep_stone(FileManager.getBlockTypeImage(0, 5), true),
+    water(FileManager.getBlockTypeImage(0,6), false);
 
     private BufferedImage image;
     private boolean collideable;

@@ -18,8 +18,8 @@ public class WorldPanel extends JPanel {
     private Image worldIcon;
     private Image isSelectedBackground, isNotSelectedBackground;
 
-    public WorldPanel(String worldName) {
-        worldDetails = FileManager.findWorldDetails(worldName);
+    public WorldPanel(WorldDetails worldDetails) {
+        this.worldDetails = worldDetails;
         worldIcon = FileManager.loadWorldImage(worldDetails);
         background.setSubImageWidth(800);
         background.setSubDimension(new Dimension(800, 150));
@@ -71,7 +71,7 @@ public class WorldPanel extends JPanel {
 
         gc = new GridBagConstraints();
 
-        JLabel titleLabel = new JLabel("Name: "+worldName);
+        JLabel titleLabel = new JLabel("Name: "+worldDetails.getName());
         titleLabel.setPreferredSize(new Dimension(620, 50));
         titleLabel.setOpaque(false);
         titleLabel.setForeground(Color.BLACK);

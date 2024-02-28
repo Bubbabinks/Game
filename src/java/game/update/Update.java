@@ -19,14 +19,18 @@ public class Update {
     private static ArrayList<OnUpdate> onRenderUpdates = new ArrayList<OnUpdate>();
     private static ArrayList<OnUpdate> onLateUpdates = new ArrayList<OnUpdate>();
 
+    public static boolean pausePhysics = false;
+
     public static void init() {
         Thread updateThread = new Thread(() -> {
             while (Manager.applicationRunning) {
                 for (var ou: onUpdates) {
                     ou.onUpdate();
                 }
-                for (var ou: onPhysicsUpdates) {
-                    ou.onUpdate();
+                if (!pausePhysics) {
+                    for (var ou : onPhysicsUpdates) {
+                        ou.onUpdate();
+                    }
                 }
                 for (var ou: onRenderUpdates) {
                     ou.onUpdate();

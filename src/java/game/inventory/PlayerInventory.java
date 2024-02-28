@@ -1,17 +1,23 @@
 package game.inventory;
 
+import game.KeyManager;
 import game.Render;
+import game.entity.Player;
+import game.update.Update;
+import game.world.World;
 import main.FileManager;
 import main.ImageUtil;
 import ui.WindowManager;
 
 import java.awt.*;
+import java.awt.event.KeyAdapter;
+import java.awt.event.KeyEvent;
 import java.awt.event.MouseWheelListener;
 
 public class PlayerInventory extends Inventory {
 
     private static final ImageUtil SELECTED_ITEM_BACKGROUND = new ImageUtil(FileManager.loadInternalImage("inventory/item_selected_background"));
-    private int selectedSlot = 0;
+    public int selectedSlot = 0;
 
     private transient MouseWheelListener mouseWheelListener = e -> {
         if (e.getWheelRotation() > 0) {
@@ -30,6 +36,7 @@ public class PlayerInventory extends Inventory {
     public PlayerInventory() {
         super(9, 4);
         Render.addMWL(mouseWheelListener);
+        Inventory pi = this;
     }
 
     public void onPlayerKilled() {
@@ -55,10 +62,8 @@ public class PlayerInventory extends Inventory {
             ItemStack itemStack = items[i][0];
             if (itemStack != null) {
                 g.drawImage(itemStack.getType().getImage(), Render.hsw+(ITEM_BACKGROUND.width*i-(ITEM_BACKGROUND.width*9/2))+10, 10, 40, 40, null);
-                g.drawString(itemStack.getAmount()+"",Render.hsw+(ITEM_BACKGROUND.width*i-(ITEM_BACKGROUND.width*9/2))+14, 14);
+                g.drawString(itemStack.getAmount()+"",Render.hsw+(ITEM_BACKGROUND.width*i-(ITEM_BACKGROUND.width*9/2))+14, 24);
             }
-
-
         }
     }
 

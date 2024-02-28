@@ -5,6 +5,7 @@ import game.world.WorldDetails;
 import main.FileManager;
 import main.ImageUtil;
 import ui.CustomButton;
+import ui.MainPanel;
 import ui.WindowManager;
 
 import javax.swing.*;
@@ -18,7 +19,10 @@ public class WorldMenuPanel extends JPanel {
     private Image background = FileManager.loadInternalImage("menu/world/background");
     private ImageUtil title = FileManager.getImage("menu/world/title");
 
+    public static CreateWorldPanel createWorldPanel;
+
     public WorldMenuPanel() {
+        createWorldPanel = new CreateWorldPanel();
         worldMenuPanel = this;
         setOpaque(false);
         setLayout(new GridBagLayout());
@@ -50,16 +54,18 @@ public class WorldMenuPanel extends JPanel {
         add(footerPanel, gc);
 
         //WorldPanels
+        /*
         WorldPanel worldPanel = new WorldPanel("Testing!");
         worldSelectorPanel.add(worldPanel, BorderLayout.NORTH);
         worldPanels.add(worldPanel);
+        */
 
         gc = new GridBagConstraints();
 
         //Buttons
         CustomButton createWorldButton = new CustomButton("menu/button/create_world", new Dimension(120, 100), new Dimension(100, 50));
         createWorldButton.addActionListener(e -> {
-            System.out.println("Create World!");
+            MainPanel.setPanel(createWorldPanel);
         });
         gc.weightx = 0.12;
         gc.weighty = 1;

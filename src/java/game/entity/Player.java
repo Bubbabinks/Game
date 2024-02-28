@@ -26,38 +26,63 @@ public class Player extends GameObject {
     private boolean flight = false;
     private boolean flightAllowed = false;
 
-    private Inventory inventory = new PlayerInventory();
+    private PlayerInventory inventory = new PlayerInventory();
     private transient OnUpdate onUpdate = this::movementThread;
+    private transient Inventory openedInventory = null;
+
+    private transient KeyListener keyListener = new KeyAdapter() {
+        @Override
+        public void keyPressed(KeyEvent e) {
+            if (flightAllowed) {
+                if (e.getKeyCode() == KeyEvent.VK_X) {
+                    flight = !flight;
+                }
+            }
+            if (e.getKeyCode() == KeyEvent.VK_E) {
+                if (openedInventory == null) {
+                    openInventory(inventory);
+                }else {
+                    closeInventory();
+                }
+            }
+            if (e.getKeyCode() > 48 && e.getKeyCode() < 58) {
+                inventory.selectedSlot = e.getKeyCode()-49;
+            }
+        }
+    };
+
     private transient MouseListener mouseListener = new MouseAdapter() {
             @Override
             public void mousePressed(MouseEvent e) {
-                int x = e.getX();
-                int y = e.getY();
-                x = Math.floorDiv((x - Render.hsw)+Render.xoffset+Render.hbs,Render.bs)+Render.x;
-                y = Math.floorDiv(-(y - Render.hsh)+Render.yoffset+Render.hbs,Render.bs)+Render.y;
-                if (e.getButton() == 3) {
-                    if (World.getBlock(x, y) == null) {
-                        PlayerInventory pi = (PlayerInventory) inventory;
-                        Point selectedSlot = pi.getSelectedSlot();
-                        if (pi.getItemStack(selectedSlot.x, selectedSlot.y) != null) {
-                            World.setBlock(x, y, pi.getItemStack(selectedSlot.x, selectedSlot.y).getType().getBlockType());
-                            if (!flight) {
-                                pi.removeOne(selectedSlot.x, selectedSlot.y);
+                if (!Update.pausePhysics) {
+                    int x = e.getX();
+                    int y = e.getY();
+                    x = Math.floorDiv((x - Render.hsw) + Render.xoffset + Render.hbs, Render.bs) + Render.x;
+                    y = Math.floorDiv(-(y - Render.hsh) + Render.yoffset + Render.hbs, Render.bs) + Render.y;
+                    if (e.getButton() == 3) {
+                        if (World.getBlock(x, y) == null) {
+                            PlayerInventory pi = (PlayerInventory) inventory;
+                            Point selectedSlot = pi.getSelectedSlot();
+                            if (pi.getItemStack(selectedSlot.x, selectedSlot.y) != null) {
+                                World.setBlock(x, y, pi.getItemStack(selectedSlot.x, selectedSlot.y).getType().getBlockType());
+                                if (!flight) {
+                                    pi.removeOne(selectedSlot.x, selectedSlot.y);
+                                }
                             }
                         }
                     }
-                }
-                if (e.getButton() == 1) {
-                    BlockType block = World.getBlock(x, y);
-                    if (block != null) {
-                        if (block.getDrop() != null && !flight) {
-                            inventory.addItemStack(new ItemStack(block.getDrop(), 1));
+                    if (e.getButton() == 1) {
+                        BlockType block = World.getBlock(x, y);
+                        if (block != null) {
+                            if (block.getDrop() != null && !flight) {
+                                inventory.addItemStack(new ItemStack(block.getDrop(), 1));
+                            }
+                            World.setBlock(x, y, null);
                         }
-                        World.setBlock(x, y, null);
-                    }
 
+                    }
+                    Render.regatherWorld();
                 }
-                Render.regatherWorld();
             }
     };
 
@@ -69,6 +94,19 @@ public class Player extends GameObject {
 
     public Inventory getInventory() {
         return inventory;
+    }
+
+    public void openInventory(Inventory inventory) {
+        if (openedInventory != null) {
+            closeInventory();
+        }
+        Update.pausePhysics = true;
+        openedInventory = inventory;
+    }
+
+    public void closeInventory() {
+        Update.pausePhysics = false;
+        openedInventory = null;
     }
 
     @Override
@@ -83,16 +121,7 @@ public class Player extends GameObject {
             flightAllowed = true;
         }
         Update.addPhysicsUpdate(onUpdate);
-        KeyManager.addKeyListener(new KeyAdapter() {
-            @Override
-            public void keyPressed(KeyEvent e) {
-                if (flightAllowed) {
-                    if (e.getKeyCode() == KeyEvent.VK_X) {
-                        flight = !flight;
-                    }
-                }
-            }
-        });
+        KeyManager.addKeyListener(keyListener);
         Render.addML(mouseListener);
     }
 

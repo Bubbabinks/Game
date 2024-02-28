@@ -108,11 +108,15 @@ public class Render extends JPanel {
             }
 
             //DrawPlayerHotBar
-            PlayerInventory playerInventory = (PlayerInventory)World.getClient().getInventory();
-            playerInventory.drawLowerHotBar(g);
+            Player player = World.getClient();
+            PlayerInventory playerInventory = (PlayerInventory)player.getInventory();
+            if (player.y > y+2) {
+                playerInventory.drawLowerHotBar(g);
+            }else {
+                playerInventory.drawUpperHotbar(g);
+            }
 
             //Debug
-            Player player = World.getClient();
             g.setColor(Color.BLACK);
             g.drawString(player.x+" "+player.y+" "+Math.floorDiv(player.x, Chunk.chunkSize)+" "+Math.floorDiv(player.y, Chunk.chunkSize), 10, 10);
         }

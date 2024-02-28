@@ -17,7 +17,7 @@ public class EarthLikeGenerator extends WorldGenerator {
     private Random random = new Random();
     private long seed = random.nextLong();
 
-    private float maxTreeHeight = 7, minTreeHeight = 5, seedOffsetForTree = 5, treeRange = maxTreeHeight-minTreeHeight+1;
+    private float maxTreeHeight = 7, minTreeHeight = 5, seedOffsetForTree = 5, seedOffsetForWaterPocket = 7, treeRange = maxTreeHeight-minTreeHeight+1;
 
 
     public boolean checkForTree(int ax, float frequency) {
@@ -37,12 +37,17 @@ public class EarthLikeGenerator extends WorldGenerator {
         return (int)(OpenSimplex2S.noise2_ImproveX(seed, (double)ax/10d, 0)*SCALE_TERRAIN);
     }
 
+    private boolean waterPocket(int ax) {
+        return OpenSimplex2S.noise2(seed+(long)seedOffsetForWaterPocket+2, ax, 0)<-0.85f && !(OpenSimplex2S.noise2(seed+(long)seedOffsetForWaterPocket+2, ax-1, 0)<-0.85f);
+    }
+
     @Override
     public void generateChunk(Chunk chunk) {
         for (int x = 0; x < Chunk.chunkSize; x++) {
             //Terrain Generation
             int ax = chunk.x+x;
             float terrainOffset = terrainOffset(ax);
+            boolean waterPocket = waterPocket(ax);
             for (int y = 0; y < Chunk.chunkSize; y++) {
                 int ay = chunk.y+y;
                 //Background
@@ -66,6 +71,8 @@ public class EarthLikeGenerator extends WorldGenerator {
                     if (cave < 0.1) {
                         chunk.setBlock(x, y, BlockType.deep_stone);
                     }
+                }else if (ay > -5+terrainOffset && ay < terrainOffset &&  waterPocket) {
+                      chunk.setBlock(x, y, BlockType.water);
                 } else if (ay < -5+terrainOffset) {
                     if (cave < 0.1) {
                         chunk.setBlock(x, y, BlockType.stone);
