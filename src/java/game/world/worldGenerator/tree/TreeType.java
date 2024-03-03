@@ -10,7 +10,8 @@ public enum TreeType {
 
     treeV1("treeV1"),
     treeV2("treeV2"),
-    treeV3("treeV3");
+    treeV3("treeV3"),
+    treeV4("treeV4");
 
     private TreeInfo treeInfo;
 

@@ -1,85 +1,113 @@
 package game.inventory;
 
-import game.KeyManager;
 import game.Render;
-import game.entity.Player;
+import game.update.OnUpdate;
 import game.update.Update;
-import game.world.World;
+import game.world.BlockType;
 import main.FileManager;
 import main.ImageUtil;
 import ui.WindowManager;
 
 import java.awt.*;
-import java.awt.event.KeyAdapter;
-import java.awt.event.KeyEvent;
 import java.awt.event.MouseWheelListener;
 
 public class PlayerInventory extends Inventory {
 
     private static final ImageUtil SELECTED_ITEM_BACKGROUND = new ImageUtil(FileManager.loadInternalImage("inventory/item_selected_background"));
-    public int selectedSlot = 0;
-
-    private transient MouseWheelListener mouseWheelListener = e -> {
-        if (e.getWheelRotation() > 0) {
-            selectedSlot++;
-            if (selectedSlot > 8) {
-                selectedSlot-=9;
-            }
-        }else {
-            selectedSlot--;
-            if (selectedSlot < 0) {
-                selectedSlot+=9;
-            }
-        }
-    };
+    private int selectedSlot = 0;
+    private ItemStack itemOnMouse;
+    private Point previousMouseLocation;
 
     public PlayerInventory() {
         super(9, 4);
-        Render.addMWL(mouseWheelListener);
-        Inventory pi = this;
+        for (int x=0; x<9; x++) {
+            for (int y=1; y<4; y++) {
+                slots[y*9+x].setCenterY(y-2);
+            }
+        }
+        for (int i=0; i<9; i++) {
+            slots[i].setCenterY(0);
+        }
+        slots[0].setSelected(true);
+    }
+
+    public void onMousePressed(Point location) {
+        for (int i = 0; i < 36; i++) {
+            if (slots[i].isClickInBounds(location)) {
+                if (itemOnMouse == null) {
+                    itemOnMouse = slots[i].getItemStack();
+                    slots[i].setItemStack(null);
+                }else {
+                    ItemStack itemStack = slots[i].getItemStack();
+                    if (itemStack == null) {
+                        slots[i].setItemStack(itemOnMouse);
+                        itemOnMouse = null;
+                    }else {
+                        if (itemStack.getType() == itemOnMouse.getType()) {
+                            int amountToMove = itemOnMouse.getAmount();
+                            amountToMove = itemStack.addAmount(amountToMove);
+                            if (amountToMove == 0) {
+                                itemOnMouse = null;
+                            }else {
+                                itemOnMouse.setAmount(amountToMove);
+                            }
+                        }else {
+                            slots[i].setItemStack(itemOnMouse);
+                            itemOnMouse = itemStack;
+                        }
+                    }
+                }
+            }
+        }
     }
 
     public void onPlayerKilled() {
-        Render.removeMWL(mouseWheelListener);
+
     }
 
-    public Point getSelectedSlot() {
-        return new Point(selectedSlot, 0);
+    public int getSelectedSlot() {
+        return selectedSlot;
+    }
+
+    public void setSelectedSlot(int slot) {
+        if (slot > -1 && slot < 9) {
+            slots[selectedSlot].setSelected(false);
+            selectedSlot = slot;
+            slots[slot].setSelected(true);
+        }
     }
 
     @Override
     public void draw(Graphics g) {
-
+        for (int x=0; x<9; x++) {
+            for (int y=1; y<4; y++) {
+                slots[y*9+x].draw(g);
+            }
+        }
+        if (itemOnMouse != null) {
+            Point mouse = Render.getMousePos();
+            if (mouse != null) {
+                previousMouseLocation = mouse;
+            }
+            ImageUtil imageUtil = new ImageUtil(itemOnMouse.getType().getImage());
+            int x = previousMouseLocation.x-imageUtil.width/2;
+            int y = previousMouseLocation.y-imageUtil.height/2;
+            g.drawImage(imageUtil.image, x, y, imageUtil.width, imageUtil.height, null);
+            g.drawString(itemOnMouse.getAmount()+"",x+4, y+14);
+        }
     }
 
     public void drawUpperHotbar(Graphics g) {
         for (int i=0; i<9; i++) {
-            if (i == selectedSlot) {
-                g.drawImage(SELECTED_ITEM_BACKGROUND.image, Render.hsw+(SELECTED_ITEM_BACKGROUND.width*i-(SELECTED_ITEM_BACKGROUND.width*9/2)), 0, SELECTED_ITEM_BACKGROUND.width, SELECTED_ITEM_BACKGROUND.height, null);
-            }else {
-                g.drawImage(ITEM_BACKGROUND.image, Render.hsw+(ITEM_BACKGROUND.width*i-(ITEM_BACKGROUND.width*9/2)), 0, ITEM_BACKGROUND.width, ITEM_BACKGROUND.height, null);
-            }
-            ItemStack itemStack = items[i][0];
-            if (itemStack != null) {
-                g.drawImage(itemStack.getType().getImage(), Render.hsw+(ITEM_BACKGROUND.width*i-(ITEM_BACKGROUND.width*9/2))+10, 10, 40, 40, null);
-                g.drawString(itemStack.getAmount()+"",Render.hsw+(ITEM_BACKGROUND.width*i-(ITEM_BACKGROUND.width*9/2))+14, 24);
-            }
+            slots[i].alignNorth();
+            slots[i].draw(g);
         }
     }
 
     public void drawLowerHotBar(Graphics g) {
         for (int i=0; i<9; i++) {
-            if (i == selectedSlot) {
-                g.drawImage(SELECTED_ITEM_BACKGROUND.image, Render.hsw+(SELECTED_ITEM_BACKGROUND.width*i-(SELECTED_ITEM_BACKGROUND.width*9/2)), WindowManager.WINDOW_HEIGHT-SELECTED_ITEM_BACKGROUND.height, SELECTED_ITEM_BACKGROUND.width, SELECTED_ITEM_BACKGROUND.height, null);
-            }else {
-                g.drawImage(ITEM_BACKGROUND.image, Render.hsw+(ITEM_BACKGROUND.width*i-(ITEM_BACKGROUND.width*9/2)), WindowManager.WINDOW_HEIGHT-ITEM_BACKGROUND.height, ITEM_BACKGROUND.width, ITEM_BACKGROUND.height, null);
-            }
-            ItemStack itemStack = items[i][0];
-            if (itemStack != null) {
-                g.drawImage(itemStack.getType().getImage(), Render.hsw+(ITEM_BACKGROUND.width*i-(ITEM_BACKGROUND.width*9/2))+10, WindowManager.WINDOW_HEIGHT-ITEM_BACKGROUND.height+10, 40, 40, null);
-                g.drawString(itemStack.getAmount()+"",Render.hsw+(ITEM_BACKGROUND.width*i-(ITEM_BACKGROUND.width*9/2))+14, WindowManager.WINDOW_HEIGHT-ITEM_BACKGROUND.height+24);
-            }
-
+            slots[i].alignSouth();
+            slots[i].draw(g);
         }
     }
 }

@@ -5,31 +5,40 @@ import main.ImageUtil;
 
 import java.awt.*;
 import java.io.Serializable;
+import java.util.List;
 
 public abstract class Inventory implements Serializable {
 
-    protected static final ImageUtil ITEM_BACKGROUND = new ImageUtil(FileManager.loadInternalImage("inventory/item_background"));
-    protected ItemStack[][] items;
+    protected InventorySlot[] slots;
     private final int width, height;
 
+    private boolean isOpen = false;
+
     public Inventory(int width, int height) {
-        items = new ItemStack[width][height];
+        slots = new InventorySlot[width*height];
+        int hw = width/2;
+        int hh = height/2;
+        for (int x = 0; x < width; x++) {
+            for (int y = 0; y < height; y++) {
+                slots[y*width+x] = new InventorySlot(x-hw, y-hh, null);
+            }
+        }
         this.width = width;
         this.height = height;
     }
 
     public ItemStack getItemStack(int x, int y) {
-        return items[x][y];
+        return slots[y*width+x].getItemStack();
     }
 
     public boolean addItemStack(ItemStack itemStack) {
         for (int y = 0; y<height; y++) {
             for (int x = 0; x<width; x++) {
-                if (items[x][y] == null) {
-                    items[x][y] = itemStack;
+                if (slots[y*width+x].getItemStack() == null) {
+                    slots[y*width+x].setItemStack(itemStack);
                     return true;
-                }else if (items[x][y].getType() == itemStack.getType()) {
-                    int remainder = items[x][y].addAmount(itemStack.getAmount());
+                }else if (slots[y*width+x].getItemStack().getType() == itemStack.getType()) {
+                    int remainder = slots[y*width+x].getItemStack().addAmount(itemStack.getAmount());
                     itemStack.setAmount(remainder);
                     if (remainder == 0) {
                         return true;
@@ -41,10 +50,10 @@ public abstract class Inventory implements Serializable {
     }
 
     public int removeItemAmount(int x, int y, int amount) {
-        if (items[x][y] != null) {
-            int r = items[x][y].removeAmount(amount);
+        if (slots[y*width+x].getItemStack() != null) {
+            int r = slots[y*width+x].getItemStack().removeAmount(amount);
             if (r == 0) {
-                items[x][y] = null;
+                slots[y*width+x].setItemStack(null);
             }
             return r*-1;
         }
@@ -56,5 +65,13 @@ public abstract class Inventory implements Serializable {
     }
 
     public abstract void draw(Graphics g);
+
+    public void onOpen() {
+        isOpen = true;
+    }
+
+    public void onClose() {
+        isOpen = false;
+    }
 
 }

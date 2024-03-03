@@ -2,13 +2,13 @@ package game;
 
 import game.entity.GameObject;
 import game.entity.Player;
+import game.inventory.Inventory;
 import game.inventory.PlayerInventory;
 import game.update.Update;
 import game.world.BackgroundType;
 import game.world.BlockType;
 import game.world.Chunk;
 import game.world.World;
-import main.Manager;
 import ui.WindowManager;
 
 import javax.swing.*;
@@ -30,9 +30,8 @@ public class Render extends JPanel {
 
     private final static ArrayList<MouseListener> addMouseListeners = new ArrayList<MouseListener>();
     private final static ArrayList<MouseWheelListener> addMouseWheelListeners = new ArrayList<MouseWheelListener>();
-    private final static boolean renderCondition = true;
 
-    private Thread rerenderThread;
+    public static Inventory renderedInventory = null;
 
     protected Render() {
         render = this;
@@ -66,7 +65,15 @@ public class Render extends JPanel {
             }
             Render.render.repaint();
         });
+    }
 
+    public static Point getMousePos() {
+        Point p = MouseInfo.getPointerInfo().getLocation();
+        SwingUtilities.convertPointFromScreen(p, Render.render);
+        if (p.x < 0 || p.y < 0 || p.x > WindowManager.WINDOW_WIDTH || p.y > WindowManager.WINDOW_HEIGHT) {
+            return null;
+        }
+        return p;
     }
 
     public static void regatherWorld() {
@@ -107,14 +114,19 @@ public class Render extends JPanel {
                 g.drawImage(o.entityType.getImage(), ((o.x-rx)*bs+(o.xoffset-rxo))+hsw-o.halfWidth, -((o.y-ry)*bs+(o.yoffset-ryo))+hsh-o.halfHeight, o.width, o.height, null);
             }
 
-            //DrawPlayerHotBar
+            //Draw HotBar
             Player player = World.getClient();
-            PlayerInventory playerInventory = (PlayerInventory)player.getInventory();
-            if (player.y > y+2) {
-                playerInventory.drawLowerHotBar(g);
+            if (player.drawUpperHotbar) {
+                ((PlayerInventory)player.getInventory()).drawUpperHotbar(g);
             }else {
-                playerInventory.drawUpperHotbar(g);
+                ((PlayerInventory)player.getInventory()).drawLowerHotBar(g);
             }
+
+            //Draw Opened Inventory
+            if (renderedInventory != null) {
+                renderedInventory.draw(g);
+            }
+
 
             //Debug
             g.setColor(Color.BLACK);

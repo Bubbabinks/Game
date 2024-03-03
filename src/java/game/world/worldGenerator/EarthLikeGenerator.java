@@ -24,6 +24,10 @@ public class EarthLikeGenerator extends WorldGenerator {
         return OpenSimplex2S.noise2(seed+(long)seedOffsetForTree+2, ax, 0)<-frequency && !(OpenSimplex2S.noise2(seed+(long)seedOffsetForTree+2, ax-1, 0)<-frequency);
     }
 
+    private boolean checkForWaterPocket(int ax, float frequency) {
+        return OpenSimplex2S.noise2(seed+(long)seedOffsetForWaterPocket+2, ax, 0)<-frequency && !(OpenSimplex2S.noise2(seed+(long)seedOffsetForWaterPocket+2, ax-1, 0)<-frequency);
+    }
+
     public TreeType getTreeType(int ax) {
         TreeType[] treeTypes = TreeType.values();
         return treeTypes[(int)(((OpenSimplex2S.noise2(seed, ax+seedOffsetForTree+5, 0)+1f)/2f)*treeTypes.length)];
@@ -37,17 +41,12 @@ public class EarthLikeGenerator extends WorldGenerator {
         return (int)(OpenSimplex2S.noise2_ImproveX(seed, (double)ax/10d, 0)*SCALE_TERRAIN);
     }
 
-    private boolean waterPocket(int ax) {
-        return OpenSimplex2S.noise2(seed+(long)seedOffsetForWaterPocket+2, ax, 0)<-0.85f && !(OpenSimplex2S.noise2(seed+(long)seedOffsetForWaterPocket+2, ax-1, 0)<-0.85f);
-    }
-
     @Override
     public void generateChunk(Chunk chunk) {
         for (int x = 0; x < Chunk.chunkSize; x++) {
             //Terrain Generation
             int ax = chunk.x+x;
             float terrainOffset = terrainOffset(ax);
-            boolean waterPocket = waterPocket(ax);
             for (int y = 0; y < Chunk.chunkSize; y++) {
                 int ay = chunk.y+y;
                 //Background
@@ -71,8 +70,6 @@ public class EarthLikeGenerator extends WorldGenerator {
                     if (cave < 0.1) {
                         chunk.setBlock(x, y, BlockType.deep_stone);
                     }
-                }else if (ay > -5+terrainOffset && ay < terrainOffset &&  waterPocket) {
-                      chunk.setBlock(x, y, BlockType.water);
                 } else if (ay < -5+terrainOffset) {
                     if (cave < 0.1) {
                         chunk.setBlock(x, y, BlockType.stone);
@@ -84,7 +81,53 @@ public class EarthLikeGenerator extends WorldGenerator {
                 }
             }
 
-            float frequency = 0.65f;
+            float frequency = 0.8f;
+            //Water Pocket
+            for (int offset = -4; offset<5; offset++) {
+                if (checkForWaterPocket(ax+offset, frequency)) {
+                    int o = Math.abs(offset);
+                    if (o == 0) {
+                        for (int i=0; i < 3; i++) {
+                            int b = -i-1;
+                            if (chunk.y <= b && chunk.y+Chunk.chunkSize > b) {
+                                chunk.setBlock(x, b-chunk.y, BlockType.water);
+                            }
+                        }
+                        int b = -4;
+                        if (chunk.y <= b && chunk.y+Chunk.chunkSize > b) {
+                            chunk.setBlock(x, b-chunk.y, BlockType.sand);
+                        }
+                    }else if (o == 1 || o == 2) {
+                        for (int i=0; i < 2; i++) {
+                            int b = -i-1;
+                            if (chunk.y <= b && chunk.y+Chunk.chunkSize > b) {
+                                chunk.setBlock(x, b-chunk.y, BlockType.water);
+                            }
+                        }
+                        int b = -3;
+                        if (chunk.y <= b && chunk.y+Chunk.chunkSize > b) {
+                            chunk.setBlock(x, b-chunk.y, BlockType.sand);
+                        }
+                    }else if (o == 3) {
+                        int b = -1;
+                        if (chunk.y <= b && chunk.y+Chunk.chunkSize > b) {
+                            chunk.setBlock(x, b-chunk.y, BlockType.water);
+                        }
+                        b = -2;
+                        if (chunk.y <= b && chunk.y+Chunk.chunkSize > b) {
+                            chunk.setBlock(x, b-chunk.y, BlockType.sand);
+                        }
+                    }else  {
+                        int b = -1;
+                        if (chunk.y <= b && chunk.y+Chunk.chunkSize > b) {
+                            chunk.setBlock(x, b-chunk.y, BlockType.sand);
+                        }
+
+                    }
+                }
+            }
+
+            frequency = 0.65f;
             //Tree Generation
             for (int offset = -14; offset<15; offset++) {
                 if (checkForTree(ax+offset, frequency)) {

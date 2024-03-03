@@ -5,13 +5,11 @@ import game.Render;
 import game.inventory.Inventory;
 import game.inventory.ItemStack;
 import game.inventory.PlayerInventory;
-import game.update.OnUpdate;
 import game.update.Update;
 import game.world.BlockType;
 import game.world.World;
 import main.Manager;
 
-import java.awt.*;
 import java.awt.event.*;
 
 public class Player extends GameObject {
@@ -27,64 +25,12 @@ public class Player extends GameObject {
     private boolean flightAllowed = false;
 
     private PlayerInventory inventory = new PlayerInventory();
-    private transient OnUpdate onUpdate = this::movementThread;
     private transient Inventory openedInventory = null;
+    public transient boolean drawUpperHotbar = true;
 
-    private transient KeyListener keyListener = new KeyAdapter() {
-        @Override
-        public void keyPressed(KeyEvent e) {
-            if (flightAllowed) {
-                if (e.getKeyCode() == KeyEvent.VK_X) {
-                    flight = !flight;
-                }
-            }
-            if (e.getKeyCode() == KeyEvent.VK_E) {
-                if (openedInventory == null) {
-                    openInventory(inventory);
-                }else {
-                    closeInventory();
-                }
-            }
-            if (e.getKeyCode() > 48 && e.getKeyCode() < 58) {
-                inventory.selectedSlot = e.getKeyCode()-49;
-            }
-        }
-    };
-
-    private transient MouseListener mouseListener = new MouseAdapter() {
-            @Override
-            public void mousePressed(MouseEvent e) {
-                if (!Update.pausePhysics) {
-                    int x = e.getX();
-                    int y = e.getY();
-                    x = Math.floorDiv((x - Render.hsw) + Render.xoffset + Render.hbs, Render.bs) + Render.x;
-                    y = Math.floorDiv(-(y - Render.hsh) + Render.yoffset + Render.hbs, Render.bs) + Render.y;
-                    if (e.getButton() == 3) {
-                        if (World.getBlock(x, y) == null) {
-                            PlayerInventory pi = (PlayerInventory) inventory;
-                            Point selectedSlot = pi.getSelectedSlot();
-                            if (pi.getItemStack(selectedSlot.x, selectedSlot.y) != null) {
-                                World.setBlock(x, y, pi.getItemStack(selectedSlot.x, selectedSlot.y).getType().getBlockType());
-                                if (!flight) {
-                                    pi.removeOne(selectedSlot.x, selectedSlot.y);
-                                }
-                            }
-                        }
-                    }
-                    if (e.getButton() == 1) {
-                        BlockType block = World.getBlock(x, y);
-                        if (block != null) {
-                            if (block.getDrop() != null && !flight) {
-                                inventory.addItemStack(new ItemStack(block.getDrop(), 1));
-                            }
-                            World.setBlock(x, y, null);
-                        }
-
-                    }
-                    Render.regatherWorld();
-                }
-            }
-    };
+    private transient KeyListener keyListener;
+    private transient MouseListener mouseListener;
+    private transient MouseWheelListener mouseWheelListener;
 
     public Player(World world) {
         super(world);
@@ -101,31 +47,122 @@ public class Player extends GameObject {
             closeInventory();
         }
         Update.pausePhysics = true;
+        Render.renderedInventory = inventory;
+        inventory.onOpen();
         openedInventory = inventory;
     }
 
     public void closeInventory() {
         Update.pausePhysics = false;
+        openedInventory.onClose();
         openedInventory = null;
+        Render.renderedInventory = null;
     }
 
     @Override
     public void kill() {
-        Update.removePhysicsUpdate(onUpdate);
+        Update.removePhysicsUpdate(this::movementThread);
         Render.removeML(mouseListener);
-        ((PlayerInventory)inventory).onPlayerKilled();
+        inventory.onPlayerKilled();
     }
 
     public void init() {
         if (Manager.developmentMode) {
             flightAllowed = true;
         }
-        Update.addPhysicsUpdate(onUpdate);
+        keyListener = new KeyAdapter() {
+            @Override
+            public void keyPressed(KeyEvent e) {
+                if (flightAllowed) {
+                    if (e.getKeyCode() == KeyEvent.VK_X) {
+                        flight = !flight;
+                    }
+                }
+                if (e.getKeyCode() == KeyEvent.VK_E) {
+                    if (openedInventory == null) {
+                        openInventory(inventory);
+                    }else {
+                        closeInventory();
+                    }
+                }
+                if (e.getKeyCode() > 48 && e.getKeyCode() < 58) {
+                    if (!Update.pausePhysics) {
+                        inventory.setSelectedSlot(e.getKeyCode()-49);
+                    }
+
+                }
+            }
+        };
+        mouseListener = new MouseAdapter() {
+            @Override
+            public void mousePressed(MouseEvent e) {
+                if (!Update.pausePhysics) {
+                    int x = e.getX();
+                    int y = e.getY();
+                    x = Math.floorDiv((x - Render.hsw) + Render.xoffset + Render.hbs, Render.bs) + Render.x;
+                    y = Math.floorDiv(-(y - Render.hsh) + Render.yoffset + Render.hbs, Render.bs) + Render.y;
+                    if (e.getButton() == 3) {
+                        if (World.getBlock(x, y) == null) {
+                            PlayerInventory pi = (PlayerInventory) inventory;
+                            int selectedSlot = pi.getSelectedSlot();
+                            if (pi.getItemStack(selectedSlot, 0) != null) {
+                                World.setBlock(x, y, pi.getItemStack(selectedSlot, 0).getType().getBlockType());
+                                if (!flight) {
+                                    pi.removeOne(selectedSlot, 0);
+                                }
+                            }
+                        }
+                    }
+                    if (e.getButton() == 1) {
+                        BlockType block = World.getBlock(x, y);
+                        if (block != null) {
+                            if (block.getDrop() != null && !flight) {
+                                inventory.addItemStack(new ItemStack(block.getDrop(), 1));
+                            }
+                            World.setBlock(x, y, null);
+                        }
+
+                    }
+                    Render.regatherWorld();
+                }else {
+                    inventory.onMousePressed(e.getPoint());
+                }
+            }
+        };
+        mouseWheelListener = e -> {
+            if (!Update.pausePhysics) {
+
+                //Needs to be fixed!
+                if (e.getWheelRotation() > 0) {
+                    int desiredSelected = inventory.getSelectedSlot()+1;
+                    if (desiredSelected > 8) {
+                        inventory.setSelectedSlot(desiredSelected-9);
+                    }else {
+                        inventory.setSelectedSlot(desiredSelected);
+                    }
+                }else {
+                    int desiredSelected = inventory.getSelectedSlot()-1;
+                    if (desiredSelected < 0) {
+                        inventory.setSelectedSlot(desiredSelected+9);
+                    }else {
+                        inventory.setSelectedSlot(desiredSelected);
+                    }
+                }
+            }
+
+        };
+        Update.addPhysicsUpdate(this::movementThread);
         KeyManager.addKeyListener(keyListener);
         Render.addML(mouseListener);
+        Render.addMWL(mouseWheelListener);
     }
 
     private void movementThread() {
+        if (y > Render.y+2) {
+            drawUpperHotbar = false;
+        }else {
+            drawUpperHotbar = true;
+        }
         if (KeyManager.input(KeyEvent.VK_W)) {
             if (!isJumping && isGrounded) {
                 isJumping = true;

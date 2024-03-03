@@ -13,7 +13,8 @@ public enum ItemType implements Serializable {
     grass(FileManager.getItemTypeImage(0, 2), "Grass"),
     log(FileManager.getItemTypeImage(0, 3), "Log"),
     leaves(FileManager.getItemTypeImage(0, 4), "Leaves"),
-    deep_stone(FileManager.getItemTypeImage(0, 5), "Deep Stone");
+    deep_stone(FileManager.getItemTypeImage(0, 5), "Deep Stone"),
+    sand(FileManager.getItemTypeImage(0, 6), "Sand");
 
     private Image image;
     private String displayName;
@@ -27,6 +28,7 @@ public enum ItemType implements Serializable {
         log.blockType = BlockType.log;
         leaves.blockType = BlockType.leaves;
         deep_stone.blockType = BlockType.deep_stone;
+        sand.blockType = BlockType.sand;
     }
 
     private ItemType(Image image, String displayName) {
