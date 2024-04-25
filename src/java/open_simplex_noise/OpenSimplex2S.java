@@ -1,4 +1,4 @@
-package not_my_code;
+package open_simplex_noise;
 
 /**
  * K.jpg's OpenSimplex 2, smooth variant ("SuperSimplex")

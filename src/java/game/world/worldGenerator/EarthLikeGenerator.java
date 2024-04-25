@@ -4,7 +4,7 @@ import game.world.BackgroundType;
 import game.world.BlockType;
 import game.world.Chunk;
 import game.world.worldGenerator.tree.TreeType;
-import not_my_code.OpenSimplex2S;
+import open_simplex_noise.OpenSimplex2S;
 
 import java.util.ArrayList;
 import java.util.Random;
