@@ -1,5 +1,6 @@
 package game;
 
+import game.entity.Coord;
 import game.entity.GameObject;
 import game.entity.Player;
 import game.inventory.Inventory;
@@ -102,17 +103,14 @@ public class Render extends JPanel {
             }
 
             //Entity Drawing
-            for (var o: World.getEntities()) {
-                g.drawImage(o.getEntityType().getImage(), ((o.x-rx)*bs+(o.xoffset-rxo))+hsw-o.halfWidth, -((o.y-ry)*bs+(o.yoffset-ryo))+hsh-o.halfHeight, o.width, o.height, null);
+            for (var e: World.getEntities()) {
+                Coord o = e.coord;
+                g.drawImage(e.getEntityType().getImage(), ((o.x-rx)*bs+(o.xoffset-rxo))+hsw-e.halfWidth, -((o.y-ry)*bs+(o.yoffset-ryo))+hsh-e.halfHeight, e.width, e.height, null);
+                e.draw(g);
             }
 
-            //Player Drawing
-            Player player = World.getClient();
-            GameObject o = player;
-            g.drawImage(o.entityType.getImage(), ((o.x-rx)*bs+(o.xoffset-rxo))+hsw-o.halfWidth, -((o.y-ry)*bs+(o.yoffset-ryo))+hsh-o.halfHeight, o.width, o.height, null);
-
             //Draw HotBar
-
+            Player player = World.getClient();
             if (player.drawUpperHotbar) {
                 ((PlayerInventory)player.getInventory()).drawUpperHotbar(g);
             }else {
@@ -127,8 +125,17 @@ public class Render extends JPanel {
 
             //Debug
             g.setColor(Color.BLACK);
-            g.drawString(player.x+" "+player.y+" "+Math.floorDiv(player.x, Chunk.chunkSize)+" "+Math.floorDiv(player.y, Chunk.chunkSize), 10, 10);
+            g.drawString(player.coord.x+" "+player.coord.y+" "+Math.floorDiv(player.coord.x, Chunk.chunkSize)+" "+Math.floorDiv(player.coord.y, Chunk.chunkSize), 10, 10);
         }
+    }
+
+    public static Point convertWorldToPixel(Coord coord) {
+        if (coord != null) {
+            return new Point(((coord.x-x)*bs+(coord.xoffset-xoffset))+hsw-hbs, -((coord.y-y)*bs+(coord.yoffset-yoffset))+hsh+hbs);
+        }else {
+            return new Point(0, 0);
+        }
+
     }
 
     public static void addML(MouseListener mouseListener) {

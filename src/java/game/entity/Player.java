@@ -10,17 +10,14 @@ import game.world.BlockType;
 import game.world.World;
 import main.Manager;
 
+import java.awt.*;
 import java.awt.event.*;
 
-public class Player extends GameObject {
+public class Player extends Entity {
 
-    private int speed = 4;
-    private int maxJumpTime = 200/(speed*2);
-    private int maxDistanceFromCenter = 200;
+    private final int speed = 4;
+    private final int maxDistanceFromCenter = 200;
 
-    public boolean isGrounded = false;
-    public boolean isJumping = false;
-    private int jumpTime = 0;
     private boolean flight = false;
     private boolean flightAllowed = false;
 
@@ -33,8 +30,9 @@ public class Player extends GameObject {
     private transient MouseWheelListener mouseWheelListener;
 
     public Player() {
-        y = 20;
-        entityType = EntityType.player;
+        super(EntityType.player);
+        hasGravity = true;
+        coord.y = 20;
     }
 
     public Inventory getInventory() {
@@ -59,10 +57,14 @@ public class Player extends GameObject {
     }
 
     @Override
-    public void kill() {
-        Update.removePhysicsUpdate(this::movementThread);
+    public void onDeath() {
         Render.removeML(mouseListener);
         inventory.onPlayerKilled();
+    }
+
+    @Override
+    protected void onDraw(Graphics g) {
+
     }
 
     public void init() {
@@ -75,6 +77,10 @@ public class Player extends GameObject {
                 if (flightAllowed) {
                     if (e.getKeyCode() == KeyEvent.VK_X) {
                         flight = !flight;
+                        hasGravity = !hasGravity;
+                        if (flight) {
+                            isJumping = false;
+                        }
                     }
                 }
                 if (e.getKeyCode() == KeyEvent.VK_E) {
@@ -150,126 +156,72 @@ public class Player extends GameObject {
             }
 
         };
-        Update.addPhysicsUpdate(this::movementThread);
         KeyManager.addKeyListener(keyListener);
         Render.addML(mouseListener);
         Render.addMWL(mouseWheelListener);
     }
 
-    private void movementThread() {
-        if (y > Render.y+2) {
+    @Override
+    protected void physicsCall() {
+        //where to draw hotbar
+        if (coord.y > Render.y+2) {
             drawUpperHotbar = false;
         }else {
             drawUpperHotbar = true;
         }
-        if (KeyManager.input(KeyEvent.VK_W)) {
-            if (!isJumping && isGrounded) {
-                isJumping = true;
-                jumpTime = 0;
-            }
-        }
+        //Basic Movement
         if (KeyManager.input(KeyEvent.VK_D)) {
-            xoffset += Collision.checkCollisionRight(this, speed);
-            while (xoffset >= Render.bs) {
-                x++;
-                xoffset -= Render.bs;
-            }
-            while (((x-Render.x)*Render.bs+(xoffset-Render.xoffset)) >= maxDistanceFromCenter) {
-                Render.xoffset++;
-            }
-            while (Render.xoffset >= Render.bs) {
-                Render.x++;
-                Render.xoffset -= Render.bs;
-            }
-
+            moveRight(speed);
         }
         if (KeyManager.input(KeyEvent.VK_A)) {
-            xoffset -= Collision.checkCollisionLeft(this, speed);
-            while (xoffset < 0) {
-                x--;
-                xoffset += Render.bs;
-            }
-            while (((x-Render.x)*Render.bs+(xoffset-Render.xoffset)) <= -maxDistanceFromCenter) {
-                Render.xoffset--;
-            }
-            while (Render.xoffset < 0) {
-                Render.x--;
-                Render.xoffset += Render.bs;
-            }
+            moveLeft(speed);
         }
 
-
+        //Flight movement
         if (flight) {
             if (KeyManager.input(KeyEvent.VK_W)) {
-                yoffset += Collision.checkCollisionUp(this, speed);
-                while (yoffset >= Render.bs) {
-                    y++;
-                    yoffset -= Render.bs;
-                }
-                while (((y-Render.y)*Render.bs+(yoffset-Render.yoffset)) >= maxDistanceFromCenter) {
-                    Render.yoffset++;
-                }
-                while (Render.yoffset >= Render.bs) {
-                    Render.y++;
-                    Render.yoffset -= Render.bs;
-                }
-
+                moveUp(speed);
             }
             if (KeyManager.input(KeyEvent.VK_S)) {
-                yoffset -= Collision.checkCollisionDown(this, speed);
-                while (yoffset < 0) {
-                    y--;
-                    yoffset += Render.bs;
-                }
-                while (((y-Render.y)*Render.bs+(yoffset-Render.yoffset)) <= -maxDistanceFromCenter) {
-                    Render.yoffset--;
-                }
-                while (Render.yoffset < 0) {
-                    Render.y--;
-                    Render.yoffset += Render.bs;
-                }
+                moveDown(speed);
             }
         }else {
-            //Gravity
-            int s = Collision.checkCollisionDown(this, speed);
-            yoffset -= s;
-            if (s == 0) {
-                isGrounded = true;
-            }else {
-                isGrounded = false;
+            if (KeyManager.input(KeyEvent.VK_W)) {
+                tryJump();
             }
-            while (yoffset < 0) {
-                y--;
-                yoffset += Render.bs;
-            }
-            while (((y-Render.y)*Render.bs+(yoffset-Render.yoffset)) <= -maxDistanceFromCenter) {
-                Render.yoffset--;
-            }
-            while (Render.yoffset < 0) {
-                Render.y--;
-                Render.yoffset += Render.bs;
-            }
-
-            //jump
-            if (isJumping) {
-                if (jumpTime < maxJumpTime) {
-                    yoffset += Collision.checkCollisionUp(this, speed*2);
-                    while (yoffset >= Render.bs) {
-                        y++;
-                        yoffset -= Render.bs;
-                    }
-                    while (((y-Render.y)*Render.bs+(yoffset-Render.yoffset)) >= maxDistanceFromCenter) {
-                        Render.yoffset++;
-                    }
-                    while (Render.yoffset >= Render.bs) {
-                        Render.y++;
-                        Render.yoffset -= Render.bs;
-                    }
-                    jumpTime++;
-                }else {
-                    isJumping = false;
-                }
-            }
+        }
+        //Renderer movement this should be moved into the render at some point... and called by function from here
+        //Right
+        while (((coord.x-Render.x)*Render.bs+(coord.xoffset-Render.xoffset)) >= maxDistanceFromCenter) {
+            Render.xoffset++;
+        }
+        while (Render.xoffset >= Render.bs) {
+            Render.x++;
+            Render.xoffset -= Render.bs;
+        }
+        //Left
+        while (((coord.x-Render.x)*Render.bs+(coord.xoffset-Render.xoffset)) <= -maxDistanceFromCenter) {
+            Render.xoffset--;
+        }
+        while (Render.xoffset < 0) {
+            Render.x--;
+            Render.xoffset += Render.bs;
+        }
+        //Up
+        while (((coord.y-Render.y)*Render.bs+(coord.yoffset-Render.yoffset)) >= maxDistanceFromCenter) {
+            Render.yoffset++;
+        }
+        while (Render.yoffset >= Render.bs) {
+            Render.y++;
+            Render.yoffset -= Render.bs;
+        }
+        //Down
+        while (((coord.y-Render.y)*Render.bs+(coord.yoffset-Render.yoffset)) <= -maxDistanceFromCenter) {
+            Render.yoffset--;
+        }
+        while (Render.yoffset < 0) {
+            Render.y--;
+            Render.yoffset += Render.bs;
         }
     }
 

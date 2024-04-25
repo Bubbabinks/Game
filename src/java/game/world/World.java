@@ -33,7 +33,9 @@ public class World implements Serializable {
     public static void init() {
         Update.addPhysicsUpdate(()->{
             if (isWorldLoaded()) {
-                world.entities.forEach(Entity::onPhysicsUpdate);
+                for (int i=0; i<world.entities.size(); i++) {
+                    world.entities.get(i).onPhysicsUpdate();
+                }
             }
         });
     }
@@ -67,10 +69,12 @@ public class World implements Serializable {
     }
 
     private World(WorldGenerator worldGenerator, String name) {
+        world = this;
         this.worldGenerator = worldGenerator;
         worldDetails = new WorldDetails(name, null);
         entities = new ArrayList<>();
         client = new Player();
+        client.addToWorld();
 
         this.name = name;
     }
@@ -176,6 +180,10 @@ public class World implements Serializable {
 
     public static void addEntity(Entity object) {
         world.entities.add(object);
+    }
+
+    public static void removeEntity(Entity object) {
+        world.entities.remove(object);
     }
 
     public static List<Entity> getEntities() {
