@@ -2,6 +2,8 @@ package game.entity;
 
 import game.world.World;
 
+import java.awt.*;
+
 public class Bunny extends Entity {
 
     private final int speed = 3;
@@ -38,7 +40,7 @@ public class Bunny extends Entity {
 
         if (isRunningFromPlayer) {
             if (!isGrounded) {
-                if (player.x > x) {
+                if (player.coord.x > coord.x) {
                     moveLeft(speed);
                 }else {
                     moveRight(speed);
@@ -47,6 +49,13 @@ public class Bunny extends Entity {
                 tryJump();
             }
         }
+    }
+
+    @Override
+    protected void onDeath() {}
+
+    @Override
+    protected void onDraw(Graphics g) {
 
     }
 }

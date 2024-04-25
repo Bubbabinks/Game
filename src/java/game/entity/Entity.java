@@ -3,6 +3,8 @@ package game.entity;
 import game.Render;
 import game.world.World;
 
+import java.awt.*;
+
 public abstract class Entity extends GameObject{
 
     private final int gravitySpeed = 4;
@@ -16,10 +18,20 @@ public abstract class Entity extends GameObject{
     protected int jumpSpeed = gravitySpeed*2;
 
     private int jumpTime = 0;
+    private boolean isInWorld = false;
 
     public Entity(EntityType type) {
         entityType = type;
+    }
+
+    public void addToWorld() {
+        isInWorld = true;
         World.addEntity(this);
+    }
+
+    public void removeFromWorld() {
+        isInWorld = false;
+        World.removeEntity(this);
     }
 
     public EntityType getEntityType() {
@@ -50,45 +62,29 @@ public abstract class Entity extends GameObject{
 
     protected int moveLeft(int distance) {
         int s = Collision.checkCollisionLeft(this, distance);
-        xoffset -= s;
-        while (xoffset < 0) {
-            x--;
-            xoffset += Render.bs;
-        }
+        coord.move(-s, 0);
         return s;
     }
 
     protected int moveRight(int distance) {
         int s = Collision.checkCollisionRight(this, distance);
-        xoffset += s;
-        while (xoffset >= Render.bs) {
-            x++;
-            xoffset -= Render.bs;
-        }
+        coord.move(s, 0);
         return s;
     }
 
     protected int moveUp(int distance) {
         int s = Collision.checkCollisionUp(this, distance);
-        yoffset += s;
-        while (yoffset >= Render.bs) {
-            y++;
-            yoffset -= Render.bs;
-        }
+        coord.move(0, s);
         return s;
     }
 
     protected int moveDown(int distance) {
         int s = Collision.checkCollisionDown(this, distance);
-        yoffset -= s;
+        coord.move(0, -s);
         if (s == 0) {
             isGrounded = true;
         }else {
             isGrounded = false;
-        }
-        while (yoffset < 0) {
-            y--;
-            yoffset += Render.bs;
         }
         return s;
     }
@@ -102,5 +98,32 @@ public abstract class Entity extends GameObject{
         return true;
     }
 
+    public RaycastResult raycast(Entity entity) {
+        Coord c1 = new Coord(coord);
+        Coord c2 = new Coord(entity.coord);
+        c1.move(halfWidth, halfHeight);
+        c2.move(entity.halfWidth, entity.halfHeight);
+        return Collision.raycast(c1, c2);
+    }
+
+    public RaycastResult raycast(Coord c2) {
+        Coord c1 = new Coord(coord);
+        c1.move(halfWidth, halfHeight);
+        return Collision.raycast(c1, c2);
+    }
+
+    @Override
+    public void kill() {
+        removeFromWorld();
+        onDeath();
+    }
+
+    public void draw(Graphics g) {
+
+        onDraw(g);
+    }
+
     protected abstract void physicsCall();
+    protected abstract void onDeath();
+    protected abstract void onDraw(Graphics g);
 }
