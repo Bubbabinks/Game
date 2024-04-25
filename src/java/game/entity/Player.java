@@ -32,8 +32,7 @@ public class Player extends GameObject {
     private transient MouseListener mouseListener;
     private transient MouseWheelListener mouseWheelListener;
 
-    public Player(World world) {
-        super(world);
+    public Player() {
         y = 20;
         entityType = EntityType.player;
     }

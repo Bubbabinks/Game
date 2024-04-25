@@ -7,7 +7,8 @@ import java.io.Serializable;
 
 public enum EntityType implements Serializable {
 
-    player(FileManager.getEntityTypeImage(0, 0));
+    player(FileManager.getEntityTypeImage(0, 0)),
+    bunny(FileManager.getEntityTypeImage(0, 1));
 
 
     private BufferedImage image;

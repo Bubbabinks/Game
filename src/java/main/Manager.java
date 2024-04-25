@@ -1,6 +1,7 @@
 package main;
 
 import game.GameManager;
+import game.entity.Bunny;
 import game.update.Update;
 import game.world.World;
 import menu.main.MainMenuManager;
@@ -25,6 +26,8 @@ public class Manager {
             GameManager.loadWorld("Testing!");
             GameManager.setPanelToRender();
         }
+
+        new Bunny();
 
     }
 
