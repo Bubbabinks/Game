@@ -6,7 +6,6 @@ import game.world.Chunk;
 import game.world.worldGenerator.tree.TreeType;
 import not_my_code.OpenSimplex2S;
 
-import java.io.Serializable;
 import java.util.ArrayList;
 import java.util.Random;
 
@@ -14,10 +13,10 @@ public class EarthLikeGenerator extends WorldGenerator {
 
     private static final float SCALE_TERRAIN = 3f;
 
-    private Random random = new Random();
-    private long seed = random.nextLong();
+    private final Random random = new Random();
+    private final long seed = random.nextLong();
 
-    private float maxTreeHeight = 7, minTreeHeight = 5, seedOffsetForTree = 5, seedOffsetForWaterPocket = 7, treeRange = maxTreeHeight-minTreeHeight+1;
+    private final float maxTreeHeight = 7, minTreeHeight = 5, seedOffsetForTree = 5, seedOffsetForWaterPocket = 7, treeRange = maxTreeHeight-minTreeHeight+1;
 
 
     public boolean checkForTree(int ax, float frequency) {
@@ -33,6 +32,7 @@ public class EarthLikeGenerator extends WorldGenerator {
         return treeTypes[(int)(((OpenSimplex2S.noise2(seed, ax+seedOffsetForTree+5, 0)+1f)/2f)*treeTypes.length)];
     }
 
+    //Will be used later!!
     private int treeHeight(int ax) {
         return (int)(((OpenSimplex2S.noise2(seed, ax+seedOffsetForTree, 0)+1f)/2f)*treeRange+minTreeHeight);
     }
@@ -81,8 +81,8 @@ public class EarthLikeGenerator extends WorldGenerator {
                 }
             }
 
-            float frequency = 0.8f;
             //Water Pocket
+            float frequency = 0.8f;
             for (int offset = -4; offset<5; offset++) {
                 if (checkForWaterPocket(ax+offset, frequency)) {
                     int o = Math.abs(offset);
@@ -127,14 +127,14 @@ public class EarthLikeGenerator extends WorldGenerator {
                 }
             }
 
-            frequency = 0.65f;
             //Tree Generation
+            frequency = 0.65f;
             for (int offset = -14; offset<15; offset++) {
                 if (checkForTree(ax+offset, frequency)) {
                     ArrayList<BlockType> v = getTreeType(ax+offset).getVertical(offset);
                     if (v != null) {
                         int h = v.size();
-                        int o = (int)terrainOffset(ax+offset)+h;
+                        int o = terrainOffset(ax+offset)+h;
                         for (int y = 0; y<h; y++) {
                             int t = o-y-1-chunk.y;
                             if (t > -1 && t < 100) {

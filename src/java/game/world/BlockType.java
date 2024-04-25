@@ -12,13 +12,14 @@ public enum BlockType implements Serializable {
     dirt(FileManager.getBlockTypeImage(0, 1), true),
     grass(FileManager.getBlockTypeImage(0, 2), true),
     log(FileManager.getBlockTypeImage(0, 3), false),
+    placeableLog(FileManager.getBlockTypeImage(0, 3), true),
     leaves(FileManager.getBlockTypeImage(0, 4), false),
     deep_stone(FileManager.getBlockTypeImage(0, 5), true),
     water(FileManager.getBlockTypeImage(0,6), false),
     sand(FileManager.getBlockTypeImage(0, 7), true);
 
-    private BufferedImage image;
-    private boolean collideable;
+    private final BufferedImage image;
+    private final boolean collideable;
     private ItemType drop;
 
     public static void init() {
@@ -27,11 +28,12 @@ public enum BlockType implements Serializable {
         dirt.drop = ItemType.dirt;
         grass.drop = ItemType.dirt;
         log.drop = ItemType.log;
+        placeableLog.drop = ItemType.log;
         deep_stone.drop = ItemType.deep_stone;
         sand.drop = ItemType.sand;
     }
 
-    private BlockType(BufferedImage image, boolean collideable) {
+    BlockType(BufferedImage image, boolean collideable) {
         this.image = image;
         this.collideable = collideable;
     }
