@@ -34,7 +34,7 @@ public class EarthLikeGenerator extends WorldGenerator {
 
     //Will be used later!!
     private int treeHeight(int ax) {
-        return (int)(((OpenSimplex2S.noise2(seed, ax+seedOffsetForTree, 0)+1f)/2f)*treeRange+minTreeHeight);
+        return ((int)(((OpenSimplex2S.noise2(seed, ax+seedOffsetForTree, 0)+1f)/2f)*treeRange+minTreeHeight))-5;
     }
 
     private int terrainOffset(int ax) {
@@ -131,12 +131,13 @@ public class EarthLikeGenerator extends WorldGenerator {
             frequency = 0.65f;
             for (int offset = -14; offset<15; offset++) {
                 if (checkForTree(ax+offset, frequency)) {
+                    int treeHeight = treeHeight(ax+offset);
                     ArrayList<BlockType> v = getTreeType(ax+offset).getVertical(offset);
                     if (v != null) {
                         int h = v.size();
                         int o = terrainOffset(ax+offset)+h;
                         for (int y = 0; y<h; y++) {
-                            int t = o-y-1-chunk.y;
+                            int t = o-y-1-chunk.y+treeHeight;
                             if (t > -1 && t < 100) {
                                 BlockType cb = chunk.getBlock(x,t);
                                 if (cb == null) {
@@ -152,12 +153,18 @@ public class EarthLikeGenerator extends WorldGenerator {
                     }
                 }
             }
-            //Dirt under Tree
+            //Dirt under Tree and extra logs
             if (checkForTree(ax, frequency)) {
                 int o = (int)terrainOffset;
                 int t = o-1-chunk.y;
                 if (t > -1 && t < 100) {
                     chunk.setBlock(x,t, BlockType.dirt);
+                }
+                for (int i=0; i < treeHeight(ax); i++) {
+                    int t2 = t+1+i;
+                    if (t2 > -1 && t2 < 100) {
+                        chunk.setBlock(x,t2, BlockType.log);
+                    }
                 }
             }
         }
