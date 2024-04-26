@@ -32,7 +32,6 @@ public class EarthLikeGenerator extends WorldGenerator {
         return treeTypes[(int)(((OpenSimplex2S.noise2(seed, ax+seedOffsetForTree+5, 0)+1f)/2f)*treeTypes.length)];
     }
 
-    //Will be used later!!
     private int treeHeight(int ax) {
         return ((int)(((OpenSimplex2S.noise2(seed, ax+seedOffsetForTree, 0)+1f)/2f)*treeRange+minTreeHeight))-5;
     }
