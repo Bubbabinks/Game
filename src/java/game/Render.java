@@ -1,5 +1,6 @@
 package game;
 
+import game.entity.Coord;
 import game.entity.GameObject;
 import game.entity.Player;
 import game.inventory.Inventory;
@@ -22,7 +23,6 @@ public class Render extends JPanel {
     public final static int sw = WindowManager.WINDOW_WIDTH, sh = WindowManager.WINDOW_HEIGHT, hsw = sw/2, hsh = sh/2;
     public static int x = 0, y = 0, xoffset = 0, yoffset = 0, bs = 40, hbs = bs/2, px = x+1, py = x, bw = sw/bs+2, hbw = bw/2, bh = sh/bs+2, hbh = bh/2;
 
-    private final static ArrayList<GameObject> renderedObjects = new ArrayList<GameObject>();
     private final static ArrayList<RenderBlock> renderedBlocks = new ArrayList<RenderBlock>();
     private final static ArrayList<RenderBackground> renderBackgrounds = new ArrayList<RenderBackground>();
     private static Render render;
@@ -80,13 +80,6 @@ public class Render extends JPanel {
         px+= 40;
     }
 
-    public static void clearRenderedObject() {
-        for (var ro: renderedObjects) {
-            ro.kill();
-        }
-        renderedObjects.clear();
-    }
-
     @Override
     protected void paintComponent(Graphics g) {
         if (World.isWorldLoaded()) {
@@ -109,9 +102,11 @@ public class Render extends JPanel {
                 g.drawImage(block.getImage(), (((renderBlock.x)-rx)*bs+(-rxo))+hsw-hbs, -(((renderBlock.y)-ry)*bs+(-ryo))+hsh-hbs, bs, bs, null);
             }
 
-            //GameObject Drawing
-            for (GameObject o: renderedObjects) {
-                g.drawImage(o.entityType.getImage(), ((o.x-rx)*bs+(o.xoffset-rxo))+hsw-o.halfWidth, -((o.y-ry)*bs+(o.yoffset-ryo))+hsh-o.halfHeight, o.width, o.height, null);
+            //Entity Drawing
+            for (var e: World.getEntities()) {
+                Coord o = e.coord;
+                g.drawImage(e.getEntityType().getImage(), ((o.x-rx)*bs+(o.xoffset-rxo))+hsw-e.halfWidth, -((o.y-ry)*bs+(o.yoffset-ryo))+hsh-e.halfHeight, e.width, e.height, null);
+                e.draw(g);
             }
 
             //Draw HotBar
@@ -130,16 +125,17 @@ public class Render extends JPanel {
 
             //Debug
             g.setColor(Color.BLACK);
-            g.drawString(player.x+" "+player.y+" "+Math.floorDiv(player.x, Chunk.chunkSize)+" "+Math.floorDiv(player.y, Chunk.chunkSize), 10, 10);
+            g.drawString(player.coord.x+" "+player.coord.y+" "+Math.floorDiv(player.coord.x, Chunk.chunkSize)+" "+Math.floorDiv(player.coord.y, Chunk.chunkSize), 10, 10);
         }
     }
 
-    public static void addRenderedObject(GameObject o) {
-        renderedObjects.add(o);
-    }
+    public static Point convertWorldToPixel(Coord coord) {
+        if (coord != null) {
+            return new Point(((coord.x-x)*bs+(coord.xoffset-xoffset))+hsw-hbs, -((coord.y-y)*bs+(coord.yoffset-yoffset))+hsh+hbs);
+        }else {
+            return new Point(0, 0);
+        }
 
-    public static void removeRenderedObject(GameObject o) {
-        renderedObjects.remove(o);
     }
 
     public static void addML(MouseListener mouseListener) {

@@ -1,6 +1,9 @@
 package main;
 
 import game.GameManager;
+import game.entity.Bunny;
+import game.entity.Collision;
+import game.entity.Demon;
 import game.update.Update;
 import game.world.World;
 import menu.main.MainMenuManager;
@@ -25,6 +28,9 @@ public class Manager {
             GameManager.loadWorld("Testing!");
             GameManager.setPanelToRender();
         }
+
+        Demon demon = new Demon();
+        demon.addToWorld();
 
     }
 

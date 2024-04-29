@@ -1,13 +1,17 @@
 package game.world;
 
+import game.entity.Entity;
+import game.entity.GameObject;
 import game.entity.Player;
 import game.Render;
+import game.update.Update;
 import game.world.worldGenerator.WorldGenerator;
 import main.FileManager;
 
 import java.awt.*;
 import java.io.Serializable;
 import java.util.ArrayList;
+import java.util.List;
 
 public class World implements Serializable {
 
@@ -17,6 +21,7 @@ public class World implements Serializable {
     private static ArrayList<Chunk> chunksInMemory = new ArrayList<Chunk>();
 
     private Player client;
+    private ArrayList<Entity> entities;
     private WorldGenerator worldGenerator;
     private String name;
     private int renderX = 0, renderY = 0, renderOffsetX = 0, renderOffsetY = 0;
@@ -26,7 +31,13 @@ public class World implements Serializable {
     private static boolean isLoaded = false;
 
     public static void init() {
-
+        Update.addPhysicsUpdate(()->{
+            if (isWorldLoaded()) {
+                for (int i=0; i<world.entities.size(); i++) {
+                    world.entities.get(i).onPhysicsUpdate();
+                }
+            }
+        });
     }
 
     public static void createWorld(String name, WorldGenerator worldGenerator) {
@@ -48,22 +59,22 @@ public class World implements Serializable {
     }
 
     private static void loadWorld(World world) {
-        Render.clearRenderedObject();
         Render.x = world.renderX;
         Render.y = world.renderY;
         Render.xoffset = world.renderOffsetX;
         Render.yoffset = world.renderOffsetY;
-        Render.addRenderedObject(world.client);
         World.world = world;
-        world.client.setWorld(world);
         world.client.init();
         isLoaded = true;
     }
 
     private World(WorldGenerator worldGenerator, String name) {
+        world = this;
         this.worldGenerator = worldGenerator;
         worldDetails = new WorldDetails(name, null);
-        client = new Player(world);
+        entities = new ArrayList<>();
+        client = new Player();
+        client.addToWorld();
 
         this.name = name;
     }
@@ -165,6 +176,18 @@ public class World implements Serializable {
 
     public static ArrayList<Chunk> getChunksInMemory() {
         return chunksInMemory;
+    }
+
+    public static void addEntity(Entity object) {
+        world.entities.add(object);
+    }
+
+    public static void removeEntity(Entity object) {
+        world.entities.remove(object);
+    }
+
+    public static List<Entity> getEntities() {
+        return world.entities;
     }
 
 }
